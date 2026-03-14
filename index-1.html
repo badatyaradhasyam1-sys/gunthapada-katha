@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="or">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ଗୁଣ୍ଠପଡ଼ା କଥା</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#E65100">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ଗୁଣ୍ଠପଡ଼ା କଥା">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Tiro+Oriya&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+<!-- Firebase Compat SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Poppins',sans-serif;background:#FFF8F0;color:#1A0A00;max-width:420px;margin:0 auto;min-height:100vh;}
+
+/* AUTH */
+.auth-wrap{min-height:100vh;background:linear-gradient(160deg,#E65100,#6D4C41 55%,#1B5E20);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px 20px;}
+.auth-logo{font-size:60px;margin-bottom:8px;}
+.auth-title{font-family:'Tiro Oriya',serif;font-size:28px;color:white;margin-bottom:4px;}
+.auth-sub{font-size:13px;color:rgba(255,255,255,0.8);margin-bottom:24px;}
+.auth-card{background:white;border-radius:20px;padding:24px;width:100%;max-width:360px;box-shadow:0 8px 32px rgba(0,0,0,0.2);}
+.tab-wrap{display:flex;background:#f5f5f5;border-radius:12px;margin-bottom:20px;overflow:hidden;}
+.tab{flex:1;padding:12px;text-align:center;font-size:14px;font-weight:700;cursor:pointer;color:#999;border-radius:12px;transition:all 0.3s;}
+.tab.on{background:#FF6D00;color:white;}
+.inp{width:100%;padding:12px 14px;border:2px solid #eee;border-radius:12px;font-size:14px;outline:none;margin-bottom:12px;font-family:'Tiro Oriya',sans-serif;}
+.inp:focus{border-color:#FF6D00;}
+.inp-wrap{position:relative;margin-bottom:12px;}
+.inp-wrap .inp{margin-bottom:0;padding-right:42px;}
+.eye{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:18px;cursor:pointer;}
+.btn{width:100%;padding:14px;background:linear-gradient(90deg,#E65100,#FF6D00);color:white;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;font-family:'Tiro Oriya',serif;margin-top:4px;}
+.btn:disabled{opacity:0.6;}
+.msg{padding:10px 14px;border-radius:10px;font-size:12px;margin-bottom:12px;font-family:'Tiro Oriya',serif;display:none;}
+.msg.err{background:#FFEBEE;color:#C62828;border:1px solid #FFCDD2;display:block;}
+.msg.ok{background:#E8F5E9;color:#1B5E20;border:1px solid #A5D6A7;display:block;}
+.forgot-link{text-align:center;color:#E65100;font-size:12px;margin-top:10px;cursor:pointer;}
+.str-bar{height:4px;background:#eee;border-radius:4px;margin-top:4px;overflow:hidden;}
+.str-fill{height:100%;border-radius:4px;transition:all 0.3s;width:0%;}
+.field-msg{font-size:11px;margin-bottom:8px;}
+.field-msg.ok{color:#1B5E20;}
+.field-msg.err{color:#C62828;}
+
+/* MODAL */
+.modal{display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.6);align-items:center;justify-content:center;}
+.modal.open{display:flex;}
+.modal-box{background:white;border-radius:20px;padding:24px;width:330px;position:relative;}
+.modal-close{position:absolute;top:12px;right:14px;background:none;border:none;font-size:22px;cursor:pointer;}
+
+/* APP */
+#app{display:none;}
+.topbar{position:sticky;top:0;z-index:100;background:linear-gradient(90deg,#E65100,#FF6D00);padding:13px 16px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 2px 12px rgba(230,81,0,0.4);}
+.topbar-title{color:white;font-weight:700;font-size:16px;font-family:'Tiro Oriya',serif;}
+.topbar-icons{display:flex;gap:14px;}
+.topbar-icon{font-size:22px;cursor:pointer;}
+
+.screens{padding-bottom:80px;}
+.screen{display:none;}
+.screen.on{display:block;}
+
+/* BOTTOM NAV */
+.bot-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:420px;background:white;border-top:1px solid #f0e0d0;display:flex;padding:8px 0 12px;z-index:100;box-shadow:0 -3px 16px rgba(230,81,0,0.1);}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;color:#ccc;font-size:10px;}
+.nav-btn .ni{font-size:22px;}
+.nav-btn.on{color:#E65100;}
+
+/* HOME */
+.stories{padding:12px 0;overflow-x:auto;white-space:nowrap;scrollbar-width:none;}
+.stories-in{display:inline-flex;gap:12px;padding:0 14px;}
+.story{display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer;}
+.s-ring{width:58px;height:58px;border-radius:50%;background:linear-gradient(45deg,#E65100,#F9A825,#1B5E20);padding:3px;}
+.s-av{width:52px;height:52px;border-radius:50%;background:#FFF8F0;display:flex;align-items:center;justify-content:center;font-size:22px;border:2px solid white;}
+.s-name{font-size:10px;color:#888;max-width:58px;text-align:center;overflow:hidden;text-overflow:ellipsis;}
+
+/* POST */
+.post{background:white;margin:0 12px 14px;border-radius:16px;box-shadow:0 3px 16px rgba(230,81,0,0.12);overflow:hidden;}
+.post-hd{display:flex;align-items:center;gap:10px;padding:12px 14px;}
+.post-av{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#FF6D00,#F9A825);display:flex;align-items:center;justify-content:center;font-size:18px;}
+.post-name{font-size:14px;font-weight:600;}
+.post-time{font-size:11px;color:#aaa;}
+.post-media{width:100%;aspect-ratio:1;object-fit:cover;}
+.post-media-wrap{width:100%;aspect-ratio:1;background:linear-gradient(135deg,#FFE0B2,#FFF3E0);display:flex;align-items:center;justify-content:center;font-size:60px;}
+.post-cap{padding:10px 14px;font-size:13px;font-family:'Tiro Oriya',serif;line-height:1.6;}
+.post-acts{display:flex;gap:18px;padding:4px 14px 12px;}
+.act{display:flex;align-items:center;gap:5px;font-size:13px;color:#888;cursor:pointer;}
+
+/* UPLOAD */
+.upload-types{display:flex;gap:8px;margin:14px 14px 0;}
+.utype{flex:1;padding:10px;border-radius:12px;border:2px solid #eee;text-align:center;font-size:12px;font-weight:700;color:#999;cursor:pointer;}
+.utype.on{border-color:#E65100;background:#FFF3E0;color:#E65100;}
+.upload-area{margin:12px 14px;border:2px dashed #F9A825;border-radius:16px;padding:28px;text-align:center;cursor:pointer;background:#FFFBF0;}
+.upload-preview{margin:0 14px 12px;border-radius:16px;overflow:hidden;display:none;}
+.upload-preview img,.upload-preview video{width:100%;border-radius:14px;}
+.prog-wrap{margin:0 14px 12px;display:none;}
+.prog-bar{height:8px;background:#eee;border-radius:8px;overflow:hidden;}
+.prog-fill{height:100%;background:linear-gradient(90deg,#E65100,#FF6D00);border-radius:8px;width:0%;transition:width 0.3s;}
+.prog-txt{font-size:12px;color:#888;text-align:center;margin-top:5px;}
+textarea.inp{min-height:90px;resize:none;}
+
+/* SEARCH */
+.search-box{margin:14px;position:relative;}
+.search-box .inp{padding-left:42px;margin-bottom:0;}
+.search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:18px;}
+.user-card{background:white;border-radius:14px;padding:14px;margin:0 14px 10px;display:flex;align-items:center;gap:12px;box-shadow:0 2px 12px rgba(230,81,0,0.1);cursor:pointer;}
+.user-av{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,#E65100,#F9A825);display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0;}
+.friend-tag{background:#E8F5E9;color:#1B5E20;font-size:11px;padding:3px 8px;border-radius:10px;font-weight:600;}
+
+/* PROFILE */
+.profile-hd{background:linear-gradient(160deg,#E65100,#6D4C41);padding:28px 16px 20px;text-align:center;color:white;}
+.profile-av{width:80px;height:80px;border-radius:50%;background:white;margin:0 auto 10px;display:flex;align-items:center;justify-content:center;font-size:40px;border:3px solid rgba(255,255,255,0.5);}
+.stats-row{display:flex;background:white;}
+.stat{flex:1;text-align:center;padding:12px;border-right:1px solid #f0e0d0;}
+.stat:last-child{border-right:none;}
+.stat-n{font-size:18px;font-weight:700;color:#E65100;}
+.stat-l{font-size:10px;color:#999;}
+.action-btn{display:block;width:calc(100% - 28px);margin:10px 14px 0;padding:13px;border-radius:12px;border:none;font-size:15px;font-weight:600;cursor:pointer;font-family:'Tiro Oriya',serif;}
+.action-btn.primary{background:linear-gradient(90deg,#E65100,#FF6D00);color:white;}
+.action-btn.danger{background:linear-gradient(90deg,#b71c1c,#e53935);color:white;margin-bottom:14px;}
+
+/* GAMES */
+.game-banner{background:linear-gradient(135deg,#1a237e,#6a1b9a);padding:16px;margin:12px;border-radius:16px;color:white;text-align:center;}
+.game-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 12px 12px;}
+.game-item{background:white;border-radius:14px;padding:16px;text-align:center;cursor:pointer;border:2px solid #f0e0d0;box-shadow:0 2px 10px rgba(0,0,0,0.05);}
+
+/* FRIENDS SCREEN */
+.friends-hd{display:flex;align-items:center;gap:10px;padding:14px;}
+.back-btn{background:none;border:none;font-size:24px;cursor:pointer;}
+
+/* CHAT */
+#chatScreen{display:none;position:fixed;inset:0;z-index:250;background:#FFF8F0;flex-direction:column;}
+#chatScreen.open{display:flex;}
+.chat-hd{background:linear-gradient(90deg,#E65100,#FF6D00);padding:13px 16px;display:flex;align-items:center;gap:10px;color:white;}
+.chat-msgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:8px;}
+.chat-msg{max-width:75%;padding:10px 14px;border-radius:16px;font-size:13px;font-family:'Tiro Oriya',serif;line-height:1.5;}
+.chat-msg.mine{background:linear-gradient(135deg,#E65100,#FF6D00);color:white;align-self:flex-end;border-bottom-right-radius:4px;}
+.chat-msg.theirs{background:white;align-self:flex-start;border-bottom-left-radius:4px;box-shadow:0 2px 6px rgba(0,0,0,0.08);}
+.chat-inp-row{background:white;padding:10px 14px;display:flex;gap:8px;border-top:1px solid #f0e0d0;}
+.chat-inp{flex:1;padding:11px 14px;border:2px solid #eee;border-radius:20px;font-size:14px;outline:none;font-family:'Tiro Oriya',serif;}
+.chat-inp:focus{border-color:#FF6D00;}
+.chat-send{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#E65100,#FF6D00);border:none;color:white;font-size:20px;cursor:pointer;}
+
+/* TOAST */
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#1A0A00;color:white;padding:10px 22px;border-radius:22px;font-size:13px;z-index:600;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;}
+</style>
+</head>
+<body>
+
+<!-- ===== AUTH SCREEN ===== -->
+<div id="authScreen">
+  <div class="auth-wrap">
+    <div class="auth-logo">🏘️</div>
+    <div class="auth-title">ଗୁଣ୍ଠପଡ଼ା କଥା</div>
+    <div class="auth-sub">ଆମ ଗୁଣ୍ଠପଡ଼ା ର ନିଜ App 🏡</div>
+    <div class="auth-card">
+      <div class="tab-wrap">
+        <div class="tab on" id="tabL">🔑 Login</div>
+        <div class="tab" id="tabR">✍️ Register</div>
+      </div>
+
+      <!-- LOGIN -->
+      <div id="loginForm">
+        <div class="msg" id="lMsg"></div>
+        <input class="inp" type="email" id="lEmail" placeholder="📧 Email address"/>
+        <div class="inp-wrap">
+          <input class="inp" type="password" id="lPass" placeholder="🔒 Password"/>
+          <button class="eye" onclick="toggleEye('lPass',this)">👁️</button>
+        </div>
+        <button class="btn" id="lBtn">Login କରନ୍ତୁ 🙏</button>
+        <div class="forgot-link" id="forgotLink">Password ଭୁଲିଗଲେ?</div>
+      </div>
+
+      <!-- REGISTER -->
+      <div id="regForm" style="display:none">
+        <div class="msg" id="rMsg"></div>
+        <input class="inp" type="text" id="rName" placeholder="👤 ପୂରା ନାମ" oninput="vName()"/>
+        <div class="field-msg" id="rNameMsg"></div>
+        <input class="inp" type="text" id="rVillage" placeholder="🏡 ଗ୍ରାମ (ଯେମିତି: ଗୁଣ୍ଠପଡ଼ା)"/>
+        <input class="inp" type="email" id="rEmail" placeholder="📧 Gmail address"/>
+        <div class="inp-wrap">
+          <input class="inp" type="password" id="rPass" placeholder="🔒 Password (ଅତି କମ ୬)" oninput="vPass()"/>
+          <button class="eye" onclick="toggleEye('rPass',this)">👁️</button>
+        </div>
+        <div class="str-bar"><div class="str-fill" id="strFill"></div></div>
+        <div class="field-msg" id="rPassMsg" style="margin-bottom:8px"></div>
+        <div class="inp-wrap">
+          <input class="inp" type="password" id="rPass2" placeholder="🔒 Password confirm" oninput="vConf()"/>
+          <button class="eye" onclick="toggleEye('rPass2',this)">👁️</button>
+        </div>
+        <div class="field-msg" id="rConfMsg" style="margin-bottom:8px"></div>
+        <button class="btn" id="rBtn">✅ Register କରନ୍ତୁ</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== FORGOT PASSWORD MODAL ===== -->
+<div class="modal" id="forgotModal">
+  <div class="modal-box">
+    <button class="modal-close" id="forgotClose">✕</button>
+    <div id="fStep1">
+      <div style="text-align:center;margin-bottom:16px"><div style="font-size:48px">🔑</div><h3 style="font-family:'Tiro Oriya',serif;color:#E65100;margin-top:6px">Password Reset</h3></div>
+      <div class="msg" id="fMsg"></div>
+      <input class="inp" type="email" id="fEmail" placeholder="📧 Registered Email"/>
+      <div style="background:#FFF3E0;border-radius:10px;padding:12px;font-size:12px;color:#E65100;font-family:'Tiro Oriya',serif;margin-bottom:12px;line-height:1.8">
+        1️⃣ Email ଦିଅନ୍ତୁ → 2️⃣ Gmail ଖୋଲନ୍ତୁ → 3️⃣ Link click → 4️⃣ ନୂଆ password
+      </div>
+      <button class="btn" id="fBtn">📨 Reset Email ପଠାନ୍ତୁ</button>
+    </div>
+    <div id="fStep2" style="display:none;text-align:center">
+      <div style="font-size:60px">📬</div>
+      <h3 style="font-family:'Tiro Oriya',serif;color:#1B5E20;margin:10px 0">Email ପଠାଯାଇଛି! ✅</h3>
+      <div id="fEmailShow" style="background:#E8F5E9;padding:10px;border-radius:10px;font-size:13px;font-weight:700;color:#1B5E20;margin-bottom:14px"></div>
+      <div style="font-size:13px;font-family:'Tiro Oriya',serif;line-height:2;color:#444;margin-bottom:14px">📱 Gmail ଖୋଲନ୍ତୁ → 📩 Reset email ଖୋଜନ୍ତୁ → 🔗 Link click → 🔑 ନୂଆ password</div>
+      <div style="font-size:11px;color:#aaa;margin-bottom:14px">⚠️ Spam folder ବି ଦେଖନ୍ତୁ</div>
+      <button class="btn" id="fOkBtn" style="background:linear-gradient(90deg,#1B5E20,#2E7D32)">✅ ଠିକ ଅଛି</button>
+      <div style="margin-top:10px;font-size:12px;color:#E65100;cursor:pointer" id="fResend">📨 ଆଉ ଥରେ ପଠାନ୍ତୁ</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== USER MODAL ===== -->
+<div class="modal" id="userModal">
+  <div class="modal-box" style="border-radius:22px 22px 0 0;position:fixed;bottom:0;width:100%;max-width:420px">
+    <button class="modal-close" id="userModalClose">✕</button>
+    <div style="text-align:center;margin-bottom:16px">
+      <div id="uAv" style="width:68px;height:68px;border-radius:50%;background:linear-gradient(135deg,#E65100,#F9A825);margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-size:32px">😊</div>
+      <div id="uName" style="font-size:18px;font-weight:700"></div>
+      <div id="uVillage" style="font-size:12px;color:#999"></div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button id="friendBtn" style="flex:1;padding:11px;border-radius:12px;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:'Tiro Oriya',serif;background:linear-gradient(90deg,#E65100,#FF6D00);color:white">👥 Add Friend</button>
+      <button id="chatBtn" style="flex:1;padding:11px;border-radius:12px;border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:'Tiro Oriya',serif;background:linear-gradient(90deg,#1a237e,#3949AB);color:white">💬 Chat</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MAIN APP ===== -->
+<div id="app">
+  <div class="topbar" id="topbar">
+    <div class="topbar-title">🏘️ ଗୁଣ୍ଠପଡ଼ା କଥା</div>
+    <div class="topbar-icons">
+      <div class="topbar-icon" onclick="toast('🔔 ଶୀଘ୍ର ✓')">🔔</div>
+      <div class="topbar-icon" onclick="showScreen('friends')">💬</div>
+    </div>
+  </div>
+
+  <div class="screens">
+    <!-- HOME -->
+    <div class="screen on" id="sHome">
+      <div class="stories"><div class="stories-in">
+        <div class="story"><div class="s-ring"><div class="s-av">➕</div></div><div class="s-name">ଆପଣ</div></div>
+        <div class="story"><div class="s-ring"><div class="s-av">👨‍🌾</div></div><div class="s-name">ଗ୍ରାମ</div></div>
+        <div class="story"><div class="s-ring"><div class="s-av">🎉</div></div><div class="s-name">ଉତ୍ସବ</div></div>
+      </div></div>
+      <div id="postsWrap"><div style="text-align:center;padding:30px;color:#aaa;font-family:'Tiro Oriya',serif">⏳ Posts load ହେଉଛି...</div></div>
+    </div>
+
+    <!-- SEARCH -->
+    <div class="screen" id="sSearch">
+      <div class="search-box">
+        <div class="search-icon">🔍</div>
+        <input class="inp" type="text" id="searchInp" placeholder="ନାମ ଖୋଜନ୍ତୁ..." oninput="doSearch()"/>
+      </div>
+      <div id="searchResults"><div style="text-align:center;padding:30px;color:#aaa;font-family:'Tiro Oriya',serif"><div style="font-size:40px">👥</div>ସଦସ୍ୟ ଖୋଜନ୍ତୁ</div></div>
+    </div>
+
+    <!-- UPLOAD -->
+    <div class="screen" id="sUpload">
+      <div style="padding:14px 14px 0;font-size:16px;font-weight:700">📤 Post ଶେୟାର</div>
+      <div class="upload-types">
+        <div class="utype on" id="utPhoto" onclick="setType('photo')">📸 Photo</div>
+        <div class="utype" id="utVideo" onclick="setType('video')">🎥 Video</div>
+        <div class="utype" id="utPdf" onclick="setType('pdf')">📄 PDF</div>
+      </div>
+      <input type="file" id="fileInp" style="display:none" accept="image/*" onchange="onFile(this)"/>
+      <div class="upload-preview" id="preview">
+        <img id="prevImg" style="display:none"/>
+        <video id="prevVid" controls style="display:none"></video>
+        <div id="prevPdf" style="display:none;background:#E8F5E9;padding:16px;text-align:center;border-radius:14px"><div style="font-size:36px">📄</div><div id="pdfName" style="font-size:13px;color:#1B5E20;margin-top:6px;font-weight:700"></div></div>
+      </div>
+      <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInp').click()">
+        <div style="font-size:44px" id="uploadIcon">📸</div>
+        <div style="font-size:13px;color:#888;margin-top:8px;font-family:'Tiro Oriya',serif" id="uploadTxt">Photo ଚୁଣନ୍ତୁ</div>
+      </div>
+      <div class="prog-wrap" id="progWrap">
+        <div class="prog-bar"><div class="prog-fill" id="progFill"></div></div>
+        <div class="prog-txt" id="progTxt">0%</div>
+      </div>
+      <div style="padding:0 14px">
+        <textarea class="inp" id="caption" placeholder="Caption ଲେଖନ୍ତୁ..."></textarea>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px">
+          <div onclick="addTag('🌾 ଚାଷ')" style="background:#FFF3E0;padding:6px 12px;border-radius:20px;font-size:12px;cursor:pointer;border:1px solid #FFB300">🌾 ଚାଷ</div>
+          <div onclick="addTag('🎉 ଉତ୍ସବ')" style="background:#FFF3E0;padding:6px 12px;border-radius:20px;font-size:12px;cursor:pointer;border:1px solid #FFB300">🎉 ଉତ୍ସବ</div>
+          <div onclick="addTag('📢 ଖବର')" style="background:#FFF3E0;padding:6px 12px;border-radius:20px;font-size:12px;cursor:pointer;border:1px solid #FFB300">📢 ଖବର</div>
+        </div>
+        <button class="btn" id="postBtn">✅ Post ଶେୟାର କରନ୍ତୁ</button>
+      </div>
+    </div>
+
+    <!-- GAMES -->
+    <div class="screen" id="sGames">
+      <div class="game-banner"><div style="font-size:36px">🎮</div><h3 style="margin:6px 0 3px">ଗ୍ୟାମ ଜୋନ</h3><div style="font-size:12px;opacity:0.8">ସାଙ୍ଗ ସହ ଖେଳନ୍ତୁ!</div></div>
+      <div class="game-grid">
+        <div class="game-item" onclick="openTTT()"><div style="font-size:36px">⭕</div><div style="font-size:12px;font-weight:700;margin-top:6px">Tic Tac Toe</div></div>
+        <div class="game-item" onclick="toast('ଶୀଘ୍ର ✓')"><div style="font-size:36px">🎯</div><div style="font-size:12px;font-weight:700;margin-top:6px">Quiz</div></div>
+        <div class="game-item" onclick="toast('ଶୀଘ୍ର ✓')"><div style="font-size:36px">🏏</div><div style="font-size:12px;font-weight:700;margin-top:6px">Cricket</div></div>
+        <div class="game-item" onclick="toast('ଶୀଘ୍ର ✓')"><div style="font-size:36px">🃏</div><div style="font-size:12px;font-weight:700;margin-top:6px">ତାସ</div></div>
+      </div>
+      <div style="padding:0 12px 12px;font-size:15px;font-weight:700">🏆 Members</div>
+      <div id="membersList" style="padding:0 12px"></div>
+    </div>
+
+    <!-- PROFILE -->
+    <div class="screen" id="sProfile">
+      <div class="profile-hd">
+        <div class="profile-av" id="pAv">😊</div>
+        <div style="font-size:20px;font-weight:700" id="pName">ଆପଣ</div>
+        <div style="font-size:13px;opacity:0.8" id="pVillage">ଗୁଣ୍ଠପଡ଼ା</div>
+        <div style="font-size:11px;opacity:0.65;margin-top:2px" id="pEmail"></div>
+      </div>
+      <div class="stats-row">
+        <div class="stat"><div class="stat-n" id="myPosts">0</div><div class="stat-l">Posts</div></div>
+        <div class="stat"><div class="stat-n" id="myFriends">0</div><div class="stat-l">Friends</div></div>
+        <div class="stat"><div class="stat-n" id="totalMembers">-</div><div class="stat-l">Members</div></div>
+      </div>
+      <button class="action-btn primary" onclick="showFriends()">👥 ମୋ Friends</button>
+      <button class="action-btn danger" id="logoutBtn">🚪 Logout</button>
+    </div>
+
+    <!-- FRIENDS -->
+    <div class="screen" id="sFriends">
+      <div class="friends-hd">
+        <button class="back-btn" onclick="showScreen('profile')">←</button>
+        <span style="font-size:17px;font-weight:700">👥 ମୋ Friends</span>
+      </div>
+      <div id="friendsWrap"><div style="text-align:center;padding:30px;color:#aaa;font-family:'Tiro Oriya',serif"><div style="font-size:40px">😔</div>ଏଖନ Friend ନାହିଁ</div></div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div class="bot-nav">
+    <div class="nav-btn on" id="nb-home" onclick="showScreen('home')"><div class="ni">🏠</div><div>Home</div></div>
+    <div class="nav-btn" id="nb-search" onclick="showScreen('search')"><div class="ni">🔍</div><div>Search</div></div>
+    <div class="nav-btn" id="nb-upload" onclick="showScreen('upload')"><div class="ni">➕</div><div>Post</div></div>
+    <div class="nav-btn" id="nb-games" onclick="showScreen('games')"><div class="ni">🎮</div><div>Games</div></div>
+    <div class="nav-btn" id="nb-profile" onclick="showScreen('profile')"><div class="ni">👤</div><div>Profile</div></div>
+  </div>
+</div>
+
+<!-- CHAT SCREEN -->
+<div id="chatScreen">
+  <div class="chat-hd">
+    <button onclick="closeChat()" style="background:none;border:none;color:white;font-size:24px;cursor:pointer">←</button>
+    <div style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;font-size:18px">😊</div>
+    <div><div id="chatFriendName" style="font-weight:700;font-size:15px"></div><div style="font-size:11px;opacity:0.8">Online</div></div>
+  </div>
+  <div class="chat-msgs" id="chatMsgs"></div>
+  <div class="chat-inp-row">
+    <input class="chat-inp" id="chatInp" placeholder="Message ଲେଖନ୍ତୁ..."/>
+    <button class="chat-send" id="chatSendBtn">➤</button>
+  </div>
+</div>
+
+<!-- TIC TAC TOE -->
+<div class="modal" id="tttModal">
+  <div class="modal-box" style="text-align:center">
+    <button class="modal-close" onclick="closeTTT()">✕</button>
+    <h3 style="font-size:16px;color:#E65100;margin-bottom:10px">⭕ Tic Tac Toe ❌</h3>
+    <div style="font-size:13px;font-weight:600;margin-bottom:12px" id="tttStatus">Player ❌ ର turn</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px" id="tttBoard"></div>
+    <button class="btn" onclick="resetTTT()" style="font-size:14px;padding:10px">🔄 ନୂଆ ଖେଳ</button>
+  </div>
+</div>
+
+<div class="toast" id="toastEl"></div>
+
+<!-- ===== MAIN SCRIPT ===== -->
+<script>
+// Firebase config
+const firebaseConfig = {
+  apiKey: "AIzaSyA9xVHx2ih0oERTkXFU2LQ4BJyBvQcTSxU",
+  authDomain: "gunthapada-katha.firebaseapp.com",
+  projectId: "gunthapada-katha",
+  storageBucket: "gunthapada-katha.firebasestorage.app",
+  messagingSenderId: "1081967542840",
+  appId: "1:1081967542840:web:ae3dc7870cc579f9919ccd"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+
+// State
+let me = null, myData = null, allUsers = [], selUser = null, chatFriend = null, chatUnsub = null;
+
+// ===== AUTH STATE =====
+auth.onAuthStateChanged(async user => {
+  if (user) {
+    me = user;
+    document.getElementById('authScreen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    toast('ସ୍ୱାଗତ! 🙏');
+    loadMyData();
+    loadPosts();
+  } else {
+    me = null; myData = null;
+    document.getElementById('authScreen').style.display = 'block';
+    document.getElementById('app').style.display = 'none';
+  }
+});
+
+async function loadMyData() {
+  try {
+    const d = await db.collection('users').doc(me.uid).get();
+    if (d.exists) {
+      myData = d.data();
+      document.getElementById('pName').textContent = myData.name || me.displayName || 'ଆପଣ';
+      document.getElementById('pVillage').textContent = myData.village || 'ଗୁଣ୍ଠପଡ଼ା';
+      document.getElementById('pEmail').textContent = '📧 ' + me.email;
+    }
+    loadFriendCount();
+    loadMemberCount();
+  } catch(e) {}
+}
+
+// ===== LOGIN =====
+document.getElementById('lBtn').onclick = async function() {
+  const e = document.getElementById('lEmail').value.trim();
+  const p = document.getElementById('lPass').value;
+  if (!e || !e.includes('@')) { showMsg('lMsg', 'Valid email ଦିଅନ୍ତୁ ❌', 'err'); return; }
+  if (!p) { showMsg('lMsg', 'Password ଦିଅନ୍ତୁ ❌', 'err'); return; }
+  this.disabled = true; this.textContent = '⏳ Login...';
+  try {
+    await auth.signInWithEmailAndPassword(e, p);
+  } catch(err) {
+    let m = 'Login ବିଫଳ ❌';
+    if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found') m = 'Email/Password ଭୁଲ ❌';
+    if (err.code === 'auth/too-many-requests') m = 'ଟିକ ଅପେକ୍ଷା ⏳';
+    showMsg('lMsg', m, 'err');
+    this.disabled = false; this.textContent = 'Login କରନ୍ତୁ 🙏';
+  }
+};
+
+// ===== REGISTER =====
+document.getElementById('rBtn').onclick = async function() {
+  const n = document.getElementById('rName').value.trim();
+  const v = document.getElementById('rVillage').value.trim();
+  const e = document.getElementById('rEmail').value.trim();
+  const p = document.getElementById('rPass').value;
+  const p2 = document.getElementById('rPass2').value;
+  if (!n || n.length < 2) { showMsg('rMsg', 'ନାମ ଅତି କମ ୨ ଅକ୍ଷର ❌', 'err'); return; }
+  if (!v) { showMsg('rMsg', 'ଗ୍ରାମ ନାମ ଦିଅନ୍ତୁ ❌', 'err'); return; }
+  if (!e || !e.includes('@')) { showMsg('rMsg', 'Valid email ❌', 'err'); return; }
+  if (p.length < 6) { showMsg('rMsg', 'Password ଅତି କମ ୬ ❌', 'err'); return; }
+  if (p !== p2) { showMsg('rMsg', 'Password ମିଳୁ ନାହିଁ ❌', 'err'); return; }
+  this.disabled = true; this.textContent = '⏳ Register...';
+  try {
+    const c = await auth.createUserWithEmailAndPassword(e, p);
+    await c.user.updateProfile({ displayName: n });
+    await db.collection('users').doc(c.user.uid).set({ name: n, village: v, email: e, uid: c.user.uid, joined: firebase.firestore.FieldValue.serverTimestamp(), posts: 0 });
+    showMsg('rMsg', '🎉 ସ୍ୱାଗତ ' + n + '!', 'ok');
+  } catch(err) {
+    let m = 'Registration ବିଫଳ ❌';
+    if (err.code === 'auth/email-already-in-use') m = 'Email ଆଗରୁ ଅଛି ❌';
+    showMsg('rMsg', m, 'err');
+    this.disabled = false; this.textContent = '✅ Register କରନ୍ତୁ';
+  }
+};
+
+// ===== LOGOUT =====
+document.getElementById('logoutBtn').onclick = async function() {
+  await auth.signOut();
+  toast('Logout 👋');
+};
+
+// ===== TABS =====
+document.getElementById('tabL').onclick = function() {
+  this.classList.add('on'); document.getElementById('tabR').classList.remove('on');
+  document.getElementById('loginForm').style.display = 'block';
+  document.getElementById('regForm').style.display = 'none';
+};
+document.getElementById('tabR').onclick = function() {
+  this.classList.add('on'); document.getElementById('tabL').classList.remove('on');
+  document.getElementById('regForm').style.display = 'block';
+  document.getElementById('loginForm').style.display = 'none';
+};
+
+// ===== FORGOT PASSWORD =====
+document.getElementById('forgotLink').onclick = function() {
+  document.getElementById('forgotModal').classList.add('open');
+  document.getElementById('fStep1').style.display = 'block';
+  document.getElementById('fStep2').style.display = 'none';
+};
+document.getElementById('forgotClose').onclick = () => document.getElementById('forgotModal').classList.remove('open');
+document.getElementById('fBtn').onclick = async function() {
+  const e = document.getElementById('fEmail').value.trim();
+  if (!e || !e.includes('@')) { showMsg('fMsg', 'Valid email ଦିଅନ୍ତୁ', 'err'); return; }
+  this.disabled = true; this.textContent = '⏳ ପଠାଯାଉଛି...';
+  try {
+    await auth.sendPasswordResetEmail(e);
+    document.getElementById('fStep1').style.display = 'none';
+    document.getElementById('fStep2').style.display = 'block';
+    document.getElementById('fEmailShow').textContent = '📧 ' + e;
+  } catch(err) {
+    let m = 'Error ❌';
+    if (err.code === 'auth/user-not-found') m = 'Email register ନାହିଁ ❌';
+    showMsg('fMsg', m, 'err');
+    this.disabled = false; this.textContent = '📨 Reset Email ପଠାନ୍ତୁ';
+  }
+};
+document.getElementById('fOkBtn').onclick = () => document.getElementById('forgotModal').classList.remove('open');
+document.getElementById('fResend').onclick = async function() {
+  const e = document.getElementById('fEmailShow').textContent.replace('📧 ', '').trim();
+  if (e) { await auth.sendPasswordResetEmail(e); toast('✅ Email ଆଉ ଥରେ ପଠାଯାଇଛି!'); }
+};
+
+// ===== POSTS =====
+function loadPosts() {
+  db.collection('posts').orderBy('createdAt', 'desc').limit(20).onSnapshot(snap => {
+    const wrap = document.getElementById('postsWrap');
+    if (snap.empty) { wrap.innerHTML = '<div style="text-align:center;padding:30px;color:#aaa;font-family:\'Tiro Oriya\',serif">ଏଖନ post ନାହିଁ<br>ଆଗେ post କରନ୍ତୁ! 🙏</div>'; return; }
+    wrap.innerHTML = '';
+    const ems = ['🌾','🌺','🏡','🎉','🌅','🌿'];
+    let mine = 0;
+    snap.forEach(d => {
+      const p = d.data(), id = d.id;
+      if (p.uid === me?.uid) mine++;
+      const t = p.createdAt?.toDate ? p.createdAt.toDate().toLocaleString('or-IN') : 'ଏଇ ବେଳ';
+      const em = ems[Math.abs(id.charCodeAt(0)) % ems.length];
+      let media = '';
+      if (p.mediaUrl && p.mediaType === 'photo') media = `<img class="post-media" src="${p.mediaUrl}" loading="lazy"/>`;
+      else if (p.mediaUrl && p.mediaType === 'video') media = `<video class="post-media" src="${p.mediaUrl}" controls></video>`;
+      else if (p.mediaUrl && p.mediaType === 'pdf') media = `<a href="${p.mediaUrl}" target="_blank" style="display:flex;align-items:center;justify-content:center;padding:16px;background:#E8F5E9;color:#1B5E20;font-weight:700;font-size:14px;text-decoration:none">📄 PDF ଖୋଲନ୍ତୁ</a>`;
+      else media = `<div class="post-media-wrap">${em}</div>`;
+      const div = document.createElement('div');
+      div.className = 'post';
+      div.innerHTML = `<div class="post-hd"><div class="post-av">${p.authorEmoji||'😊'}</div><div><div class="post-name">${p.authorName||'?'}</div><div class="post-time">${t} • ${p.village||'ଗ'}</div></div></div>${media}<div class="post-cap">${p.caption||''}</div><div class="post-acts"><div class="act">🤍 ${p.likes||0}</div><div class="act">💬 ${p.comments||0}</div><div class="act">🔗 Share</div></div>`;
+      wrap.appendChild(div);
+    });
+    document.getElementById('myPosts').textContent = mine;
+  });
+}
+
+// ===== UPLOAD =====
+const CLOUD = 'def794l3v', PRESET = 'gunthapada_katha';
+let selFile = null, fileType = 'photo';
+
+function setType(t) {
+  fileType = t; selFile = null;
+  document.getElementById('preview').style.display = 'none';
+  ['photo','video','pdf'].forEach(x => {
+    const el = document.getElementById('ut' + x.charAt(0).toUpperCase() + x.slice(1));
+    el.classList.toggle('on', x === t);
+  });
+  const inp = document.getElementById('fileInp');
+  const icon = document.getElementById('uploadIcon');
+  const txt = document.getElementById('uploadTxt');
+  if (t === 'photo') { inp.accept = 'image/*'; icon.textContent = '📸'; txt.textContent = 'Photo ଚୁଣନ୍ତୁ'; }
+  else if (t === 'video') { inp.accept = 'video/*'; icon.textContent = '🎥'; txt.textContent = 'Video ଚୁଣନ୍ତୁ (max 50MB)'; }
+  else { inp.accept = 'application/pdf'; icon.textContent = '📄'; txt.textContent = 'PDF ଚୁଣନ୍ତୁ'; }
+}
+
+function onFile(inp) {
+  const f = inp.files[0];
+  if (!f) return;
+  if (f.size > (fileType === 'video' ? 50 : 10) * 1024 * 1024) { toast('ଫାଇଲ ବଡ଼!'); return; }
+  selFile = f;
+  const url = URL.createObjectURL(f);
+  const prev = document.getElementById('preview');
+  prev.style.display = 'block';
+  document.getElementById('prevImg').style.display = 'none';
+  document.getElementById('prevVid').style.display = 'none';
+  document.getElementById('prevPdf').style.display = 'none';
+  if (fileType === 'photo') { const i = document.getElementById('prevImg'); i.src = url; i.style.display = 'block'; }
+  else if (fileType === 'video') { const v = document.getElementById('prevVid'); v.src = url; v.style.display = 'block'; }
+  else { document.getElementById('pdfName').textContent = f.name; document.getElementById('prevPdf').style.display = 'block'; }
+  toast('✅ File Ready!');
+}
+
+function uploadCloud(file) {
+  const rt = fileType === 'video' ? 'video' : fileType === 'pdf' ? 'raw' : 'image';
+  const url = `https://api.cloudinary.com/v1_1/${CLOUD}/${rt}/upload`;
+  const fd = new FormData();
+  fd.append('file', file); fd.append('upload_preset', PRESET);
+  const pf = document.getElementById('progFill');
+  const pt = document.getElementById('progTxt');
+  document.getElementById('progWrap').style.display = 'block';
+  return new Promise((res, rej) => {
+    const xhr = new XMLHttpRequest();
+    xhr.upload.onprogress = e => { if (e.lengthComputable) { const p = Math.round(e.loaded/e.total*100); pf.style.width = p+'%'; pt.textContent = p+'%'; } };
+    xhr.onload = () => { document.getElementById('progWrap').style.display = 'none'; xhr.status === 200 ? res(JSON.parse(xhr.responseText).secure_url) : rej(new Error('Failed')); };
+    xhr.onerror = () => { document.getElementById('progWrap').style.display = 'none'; rej(new Error('Network')); };
+    xhr.open('POST', url); xhr.send(fd);
+  });
+}
+
+document.getElementById('postBtn').onclick = async function() {
+  const cap = document.getElementById('caption').value.trim();
+  if (!cap && !selFile) { toast('Caption ବା File ଦିଅନ୍ତୁ!'); return; }
+  this.disabled = true; this.textContent = '⏳ Post ହେଉଛି...';
+  try {
+    let mediaUrl = null, mediaType = null;
+    if (selFile) { toast('⏳ Upload ହେଉଛି...'); mediaUrl = await uploadCloud(selFile); mediaType = fileType; }
+    await db.collection('posts').add({ caption: cap, authorName: myData?.name || me?.displayName || 'ଆପଣ', authorEmoji: '😊', village: myData?.village || 'ଗୁଣ୍ଠପଡ଼ା', uid: me.uid, likes: 0, comments: 0, mediaUrl, mediaType, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+    document.getElementById('caption').value = '';
+    selFile = null;
+    document.getElementById('preview').style.display = 'none';
+    document.getElementById('fileInp').value = '';
+    toast('🎉 Post ହୋଇଗଲା!');
+    showScreen('home');
+  } catch(e) { toast('Error: ' + e.message); }
+  this.disabled = false; this.textContent = '✅ Post ଶେୟାର କରନ୍ତୁ';
+};
+
+// ===== SEARCH =====
+async function loadAllUsers() {
+  if (allUsers.length) return;
+  const s = await db.collection('users').get();
+  allUsers = s.docs.map(d => d.data());
+}
+
+async function doSearch() {
+  const q = document.getElementById('searchInp').value.trim().toLowerCase();
+  const res = document.getElementById('searchResults');
+  if (!q) { res.innerHTML = '<div style="text-align:center;padding:30px;color:#aaa;font-family:\'Tiro Oriya\',serif"><div style="font-size:40px">👥</div>ସଦସ୍ୟ ଖୋଜନ୍ତୁ</div>'; return; }
+  await loadAllUsers();
+  const myFs = await getMyFriends();
+  const fids = myFs.map(f => f.friendUid);
+  const r = allUsers.filter(u => (u.name?.toLowerCase().includes(q) || u.village?.toLowerCase().includes(q)) && u.uid !== me?.uid);
+  if (!r.length) { res.innerHTML = '<div style="text-align:center;padding:20px;color:#aaa;font-family:\'Tiro Oriya\',serif">😔 ମିଳିଲା ନାହିଁ</div>'; return; }
+  res.innerHTML = '';
+  r.forEach(u => {
+    const d = document.createElement('div');
+    d.className = 'user-card';
+    d.onclick = () => openUserModal(u);
+    d.innerHTML = `<div class="user-av">😊</div><div style="flex:1"><div style="font-size:14px;font-weight:700">${u.name}</div><div style="font-size:11px;color:#999">🏡 ${u.village||'ଗ'}</div></div>${fids.includes(u.uid) ? '<div class="friend-tag">✅ Friend</div>' : '<div style="color:#ccc;font-size:13px">👤</div>'}`;
+    res.appendChild(d);
+  });
+}
+
+// ===== FRIENDS =====
+async function getMyFriends() {
+  if (!me) return [];
+  try { const s = await db.collection('friends').where('userUid', '==', me.uid).get(); return s.docs.map(d => d.data()); }
+  catch { return []; }
+}
+
+async function loadFriendCount() {
+  const fs = await getMyFriends();
+  document.getElementById('myFriends').textContent = fs.length;
+}
+
+async function loadMemberCount() {
+  try { const s = await db.collection('users').get(); document.getElementById('totalMembers').textContent = s.size; } catch {}
+}
+
+function openUserModal(u) {
+  selUser = u;
+  document.getElementById('uName').textContent = u.name;
+  document.getElementById('uVillage').textContent = '🏡 ' + (u.village || 'ଗ');
+  document.getElementById('userModal').classList.add('open');
+  getMyFriends().then(fs => {
+    const isFr = fs.some(f => f.friendUid === u.uid);
+    const btn = document.getElementById('friendBtn');
+    btn.textContent = isFr ? '✅ Friend ଅଛି' : '👥 Add Friend';
+    btn.style.background = isFr ? 'linear-gradient(90deg,#1B5E20,#2E7D32)' : 'linear-gradient(90deg,#E65100,#FF6D00)';
+  });
+}
+document.getElementById('userModalClose').onclick = () => { document.getElementById('userModal').classList.remove('open'); selUser = null; };
+
+document.getElementById('friendBtn').onclick = async function() {
+  if (!selUser || !me) return;
+  this.disabled = true;
+  const fs = await getMyFriends();
+  const isFr = fs.some(f => f.friendUid === selUser.uid);
+  try {
+    if (isFr) {
+      const s = await db.collection('friends').where('userUid', '==', me.uid).where('friendUid', '==', selUser.uid).get();
+      for (const d of s.docs) await d.ref.delete();
+      this.textContent = '👥 Add Friend'; this.style.background = 'linear-gradient(90deg,#E65100,#FF6D00)';
+      toast('Friend Remove ✓');
+    } else {
+      await db.collection('friends').add({ userUid: me.uid, userName: myData?.name||'?', friendUid: selUser.uid, friendName: selUser.name, friendVillage: selUser.village||'ଗ', addedAt: firebase.firestore.FieldValue.serverTimestamp() });
+      this.textContent = '✅ Friend ଅଛି'; this.style.background = 'linear-gradient(90deg,#1B5E20,#2E7D32)';
+      toast('🎉 Friend Add!'); loadFriendCount();
+    }
+  } catch(e) { toast('Error!'); }
+  this.disabled = false;
+};
+
+document.getElementById('chatBtn').onclick = function() {
+  if (!selUser) return;
+  document.getElementById('userModal').classList.remove('open');
+  openChat(selUser.uid, selUser.name);
+};
+
+function showFriends() {
+  showScreen('friends');
+  getMyFriends().then(fs => {
+    const wrap = document.getElementById('friendsWrap');
+    if (!fs.length) { wrap.innerHTML = '<div style="text-align:center;padding:30px;color:#aaa;font-family:\'Tiro Oriya\',serif"><div style="font-size:40px">😔</div>ଏଖନ Friend ନାହିଁ<br>Search ରୁ Add କରନ୍ତୁ</div>'; return; }
+    wrap.innerHTML = '';
+    fs.forEach(f => {
+      const d = document.createElement('div');
+      d.className = 'user-card';
+      d.innerHTML = `<div class="user-av">😊</div><div style="flex:1"><div style="font-size:14px;font-weight:700">${f.friendName}</div><div style="font-size:11px;color:#999">🏡 ${f.friendVillage}</div></div><div style="display:flex;gap:6px"><button onclick="openChat('${f.friendUid}','${f.friendName}')" style="background:linear-gradient(90deg,#1a237e,#3949AB);border:none;color:white;padding:7px 10px;border-radius:10px;font-size:13px;cursor:pointer">💬</button></div>`;
+      wrap.appendChild(d);
+    });
+    document.getElementById('myFriends').textContent = fs.length;
+  });
+}
+
+// ===== CHAT =====
+function getChatId(a, b) { return [a, b].sort().join('_'); }
+
+function openChat(uid, name) {
+  chatFriend = { uid, name };
+  document.getElementById('chatFriendName').textContent = name;
+  document.getElementById('chatMsgs').innerHTML = '';
+  document.getElementById('chatScreen').classList.add('open');
+  if (chatUnsub) chatUnsub();
+  const cid = getChatId(me.uid, uid);
+  chatUnsub = db.collection('chats').doc(cid).collection('messages').orderBy('createdAt', 'asc').limit(50).onSnapshot(snap => {
+    const msgs = document.getElementById('chatMsgs');
+    msgs.innerHTML = '';
+    snap.forEach(d => {
+      const m = d.data(), mine = m.senderUid === me.uid;
+      const t = m.createdAt?.toDate ? m.createdAt.toDate().toLocaleTimeString('or-IN', {hour:'2-digit',minute:'2-digit'}) : '';
+      const div = document.createElement('div');
+      div.innerHTML = `<div class="chat-msg ${mine?'mine':'theirs'}">${m.text}<div style="font-size:10px;opacity:0.7;margin-top:3px">${t}</div></div>`;
+      msgs.appendChild(div);
+    });
+    msgs.scrollTop = msgs.scrollHeight;
+  });
+}
+
+function closeChat() {
+  document.getElementById('chatScreen').classList.remove('open');
+  if (chatUnsub) { chatUnsub(); chatUnsub = null; }
+  chatFriend = null;
+}
+
+document.getElementById('chatSendBtn').onclick = sendMsg;
+document.getElementById('chatInp').onkeydown = e => { if (e.key === 'Enter') sendMsg(); };
+
+async function sendMsg() {
+  const inp = document.getElementById('chatInp');
+  const txt = inp.value.trim();
+  if (!txt || !chatFriend || !me) return;
+  inp.value = '';
+  const cid = getChatId(me.uid, chatFriend.uid);
+  try { await db.collection('chats').doc(cid).collection('messages').add({ text: txt, senderUid: me.uid, senderName: myData?.name || me.displayName || 'ଆପଣ', createdAt: firebase.firestore.FieldValue.serverTimestamp() }); }
+  catch(e) { toast('Error!'); }
+}
+
+// ===== NAVIGATION =====
+function showScreen(s) {
+  ['home','search','upload','games','profile','friends'].forEach(x => {
+    const el = document.getElementById('s' + x.charAt(0).toUpperCase() + x.slice(1));
+    if (el) el.classList.toggle('on', x === s);
+    const nb = document.getElementById('nb-' + x);
+    if (nb) nb.classList.toggle('on', x === s);
+  });
+  const hideTop = s === 'profile' || s === 'friends';
+  document.getElementById('topbar').style.display = hideTop ? 'none' : 'flex';
+  if (s === 'games') loadMemberCount();
+  if (s === 'search') { loadAllUsers(); setTimeout(() => document.getElementById('searchInp').focus(), 300); }
+  if (s === 'friends') showFriends();
+}
+
+// ===== UTILS =====
+function toggleEye(id, btn) {
+  const i = document.getElementById(id);
+  i.type = i.type === 'password' ? 'text' : 'password';
+  btn.textContent = i.type === 'password' ? '👁️' : '🙈';
+}
+function showMsg(id, msg, type) { const el = document.getElementById(id); el.textContent = msg; el.className = 'msg ' + type; }
+function addTag(t) { const el = document.getElementById('caption'); el.value += (el.value ? ' ' : '') + t; }
+function toast(msg) { const t = document.getElementById('toastEl'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 2200); }
+function vName() { const v = document.getElementById('rName').value.trim(), m = document.getElementById('rNameMsg'); m.className = 'field-msg ' + (v.length < 2 ? 'err' : 'ok'); m.textContent = v.length < 2 ? 'ଅତି କମ ୨ ଅକ୍ଷର' : '✓'; }
+function vPass() { const v = document.getElementById('rPass').value, f = document.getElementById('strFill'), m = document.getElementById('rPassMsg'); let s = 0; if(v.length>=6)s++;if(v.length>=10)s++;if(/[A-Z]/.test(v))s++;if(/[0-9]/.test(v))s++; f.style.width=(s*25)+'%'; f.style.background=['','#ef5350','#FF6D00','#FFC107','#2E7D32'][s]||'#eee'; m.className='field-msg '+(v.length<6?'err':'ok'); m.textContent=v.length<6?'ଅତି କମ ୬':['','ଦୁର୍ବଳ','ଠିକ','ଭଲ','ଶ୍ରେଷ୍ଠ'][s]||''; }
+function vConf() { const p1=document.getElementById('rPass').value,p2=document.getElementById('rPass2').value,m=document.getElementById('rConfMsg'); m.className='field-msg '+(p1!==p2?'err':'ok'); m.textContent=p1!==p2?'ମିଳୁ ନାହିଁ ❌':p2?'✓':''; }
+
+// ===== TIC TAC TOE =====
+let tttB = Array(9).fill(''), tttT = 'X', tttDone = false;
+function openTTT() { document.getElementById('tttModal').classList.add('open'); resetTTT(); }
+function closeTTT() { document.getElementById('tttModal').classList.remove('open'); }
+function resetTTT() {
+  tttB = Array(9).fill(''); tttT = 'X'; tttDone = false;
+  document.getElementById('tttStatus').textContent = 'Player ❌ ର turn';
+  const b = document.getElementById('tttBoard'); b.innerHTML = '';
+  for (let i = 0; i < 9; i++) {
+    const c = document.createElement('div');
+    c.style.cssText = 'aspect-ratio:1;background:#FFF8F0;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:28px;cursor:pointer;border:2px solid #f0e0d0;';
+    c.onclick = () => tttMove(i, c);
+    b.appendChild(c);
+  }
+}
+function tttMove(i, c) {
+  if (tttDone || tttB[i]) return;
+  tttB[i] = tttT; c.textContent = tttT === 'X' ? '❌' : '⭕';
+  const w = tttCheck();
+  if (w) { document.getElementById('tttStatus').textContent = (w==='X'?'❌':'⭕') + ' ଜିତିଲା! 🎉'; tttDone = true; return; }
+  if (!tttB.includes('')) { document.getElementById('tttStatus').textContent = 'Draw! 🤝'; tttDone = true; return; }
+  tttT = tttT === 'X' ? 'O' : 'X';
+  document.getElementById('tttStatus').textContent = 'Player ' + (tttT==='X'?'❌':'⭕') + ' ର turn';
+}
+function tttCheck() {
+  for (const [a,b,c] of [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]])
+    if (tttB[a] && tttB[a]===tttB[b] && tttB[a]===tttB[c]) return tttB[a];
+  return null;
+}
+
+// PWA
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+let dp; window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); dp = e; });
+</script>
+</body>
+</html>
