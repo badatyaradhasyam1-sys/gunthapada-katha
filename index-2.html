@@ -1,0 +1,1365 @@
+<!DOCTYPE html>
+<html lang="or">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>ଗୁଣ୍ଠପଡ଼ା କଥା</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#FF6B00">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ଗୁଣ୍ଠପଡ଼ା କଥା">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Oriya:wght@400;700&family=Baloo+2:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<style>
+:root{
+  --or:#FF6B00;--or2:#D45500;--or-glow:rgba(255,107,0,0.2);
+  --gr:#1A6B3C;--gr2:#22A35A;
+  --cream:#FFFAF4;--warm:#FFF3E6;--card:#FFFFFF;
+  --text:#1A0D00;--muted:#8A6A50;--border:#F0E0CC;
+  --sh:0 2px 12px rgba(255,107,0,0.08);
+  --sh2:0 6px 24px rgba(255,107,0,0.14);
+  --r:18px;--r2:12px;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{font-family:'Baloo 2',sans-serif;background:var(--cream);color:var(--text);max-width:420px;margin:0 auto;min-height:100vh;overflow-x:hidden;}
+.or{font-family:'Noto Sans Oriya',serif;}
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-thumb{background:var(--or);border-radius:3px;}
+
+/* ===== AUTH ===== */
+#authWrap{min-height:100vh;background:linear-gradient(145deg,#FF6B00 0%,#C24A00 45%,#1A3D2A 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px 20px;position:relative;overflow:hidden;}
+#authWrap::before{content:'';position:absolute;width:280px;height:280px;background:rgba(255,255,255,0.05);border-radius:50%;top:-80px;right:-60px;}
+#authWrap::after{content:'';position:absolute;width:180px;height:180px;background:rgba(255,255,255,0.04);border-radius:50%;bottom:-50px;left:-40px;}
+.alogo{font-size:64px;animation:float 3s ease-in-out infinite alternate;position:relative;z-index:1;}
+@keyframes float{from{transform:translateY(0)}to{transform:translateY(-10px)}}
+.atitle{font-family:'Noto Sans Oriya',serif;font-size:30px;color:white;margin:8px 0 4px;text-shadow:0 2px 12px rgba(0,0,0,0.3);position:relative;z-index:1;}
+.asub{font-size:13px;color:rgba(255,255,255,0.75);margin-bottom:28px;position:relative;z-index:1;}
+.acard{background:rgba(255,255,255,0.97);border-radius:24px;padding:26px 22px;width:100%;max-width:360px;box-shadow:0 20px 60px rgba(0,0,0,0.3);position:relative;z-index:1;}
+.tabs{display:flex;background:#F5EDE3;border-radius:14px;margin-bottom:20px;overflow:hidden;padding:4px;gap:4px;}
+.tab{flex:1;padding:11px;text-align:center;font-size:14px;font-weight:700;cursor:pointer;color:var(--muted);border-radius:10px;transition:all 0.3s cubic-bezier(0.34,1.56,0.64,1);}
+.tab.on{background:linear-gradient(135deg,var(--or),var(--or2));color:white;box-shadow:0 4px 16px rgba(255,107,0,0.4);transform:scale(1.02);}
+.inp{width:100%;padding:13px 16px;border:2px solid var(--border);border-radius:var(--r2);font-size:14px;outline:none;margin-bottom:10px;font-family:'Baloo 2',sans-serif;background:#FDFAF7;transition:all 0.25s;color:var(--text);}
+.inp:focus{border-color:var(--or);background:white;box-shadow:0 0 0 4px var(--or-glow);}
+.pwrap{position:relative;margin-bottom:10px;}
+.pwrap .inp{margin-bottom:0;padding-right:46px;}
+.eye{position:absolute;right:13px;top:50%;transform:translateY(-50%);background:none;border:none;font-size:18px;cursor:pointer;}
+.btn{width:100%;padding:14px;background:linear-gradient(135deg,var(--or),var(--or2));color:white;border:none;border-radius:var(--r2);font-size:15px;font-weight:700;cursor:pointer;font-family:'Baloo 2',sans-serif;transition:all 0.25s;box-shadow:0 4px 16px rgba(255,107,0,0.4);}
+.btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(255,107,0,0.5);}
+.btn:active{transform:scale(0.97);}
+.btn:disabled{opacity:0.6;cursor:not-allowed;transform:none;}
+.btn.green{background:linear-gradient(135deg,#1A6B3C,#22A35A);box-shadow:0 4px 16px rgba(26,107,60,0.4);}
+.btn.red{background:linear-gradient(135deg,#C62828,#E53935);box-shadow:0 4px 16px rgba(198,40,40,0.4);}
+.amsg{padding:10px 14px;border-radius:10px;font-size:12px;margin-bottom:10px;font-family:'Noto Sans Oriya',serif;display:none;}
+.amsg.err{background:#FFEBEE;color:#C62828;border:1px solid #FFCDD2;display:block;}
+.amsg.ok{background:#E8F5E9;color:#1B5E20;border:1px solid #A5D6A7;display:block;}
+.str-bar{height:5px;background:var(--border);border-radius:4px;margin:4px 0 8px;overflow:hidden;}
+.str-fill{height:100%;border-radius:4px;transition:all 0.4s;width:0%;}
+.fmsg{font-size:11px;margin-bottom:7px;}
+.fmsg.ok{color:var(--gr);}.fmsg.err{color:#C62828;}
+
+/* ===== MODAL ===== */
+.modal{display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,0.55);align-items:center;justify-content:center;backdrop-filter:blur(4px);}
+.modal.open{display:flex;animation:fadeM 0.2s ease;}
+@keyframes fadeM{from{opacity:0}to{opacity:1}}
+.mbox{background:white;border-radius:24px;padding:24px;width:330px;position:relative;max-height:85vh;overflow-y:auto;box-shadow:0 12px 40px rgba(0,0,0,0.2);}
+.mbox.bottom{border-radius:24px 24px 0 0;position:fixed;bottom:0;width:100%;max-width:420px;animation:slideUp 0.3s cubic-bezier(0.34,1.56,0.64,1);}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.mclose{position:absolute;top:14px;right:16px;background:#F5EDE3;border:none;font-size:16px;cursor:pointer;width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+
+/* ===== APP ===== */
+#appWrap{display:none;flex-direction:column;min-height:100vh;}
+
+/* TOPBAR */
+.topbar{position:sticky;top:0;z-index:100;background:linear-gradient(135deg,var(--or),var(--or2));padding:12px 16px;display:flex;align-items:center;justify-content:space-between;box-shadow:0 4px 20px rgba(255,107,0,0.3);}
+.topbar-title{color:white;font-weight:800;font-size:17px;font-family:'Noto Sans Oriya',serif;}
+.ticons{display:flex;gap:6px;align-items:center;}
+.tic{width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,0.18);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;position:relative;transition:all 0.2s;}
+.tic:active{transform:scale(0.88);}
+.badge{position:absolute;top:-4px;right:-4px;background:#e53935;color:white;font-size:9px;min-width:16px;height:16px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-weight:700;border:2px solid var(--or);}
+
+/* SCREENS */
+.screens{flex:1;padding-bottom:80px;}
+.screen{display:none;animation:fadeIn 0.25s ease;}
+.screen.on{display:block;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+
+/* BOTTOM NAV */
+.botnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:420px;background:white;border-top:1px solid var(--border);display:flex;padding:7px 0 12px;z-index:100;box-shadow:0 -4px 20px rgba(0,0,0,0.07);}
+.nv{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;color:#C4A882;font-size:10px;font-weight:600;transition:all 0.25s;position:relative;}
+.nv .ni{font-size:22px;transition:transform 0.25s cubic-bezier(0.34,1.56,0.64,1);}
+.nv.on{color:var(--or);}
+.nv.on .ni{transform:scale(1.2);}
+.nv-badge{position:absolute;top:0;right:calc(50% - 20px);background:#e53935;color:white;font-size:9px;min-width:16px;height:16px;border-radius:8px;display:none;align-items:center;justify-content:center;font-weight:700;}
+
+/* STORIES */
+.stories-wrap{padding:14px 0 10px;overflow-x:auto;white-space:nowrap;scrollbar-width:none;}
+.stories-wrap::-webkit-scrollbar{display:none;}
+.stories-inner{display:inline-flex;gap:12px;padding:0 14px;}
+.story-item{display:flex;flex-direction:column;align-items:center;gap:5px;cursor:pointer;}
+.story-ring{width:62px;height:62px;border-radius:50%;background:linear-gradient(45deg,#FF6B00,#F9A825,#1A6B3C);padding:3px;transition:transform 0.2s;}
+.story-ring:active{transform:scale(0.92);}
+.story-ring.seen{background:#ddd;}
+.story-ring.add{background:linear-gradient(135deg,#eee,#ddd);}
+.story-av{width:56px;height:56px;border-radius:50%;background:var(--warm);display:flex;align-items:center;justify-content:center;font-size:24px;border:2px solid white;overflow:hidden;}
+.story-av img{width:100%;height:100%;object-fit:cover;}
+.story-name{font-size:10px;color:var(--muted);max-width:62px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;}
+
+/* STORY VIEWER */
+#storyViewer{display:none;position:fixed;inset:0;z-index:600;background:black;flex-direction:column;}
+#storyViewer.open{display:flex;}
+.sv-bar{display:flex;gap:4px;padding:10px 12px 6px;}
+.sv-seg{flex:1;height:3px;background:rgba(255,255,255,0.3);border-radius:2px;overflow:hidden;}
+.sv-fill{height:100%;background:white;border-radius:2px;animation:svFill 5s linear forwards;}
+@keyframes svFill{from{width:0%}to{width:100%}}
+.sv-hd{display:flex;align-items:center;gap:10px;padding:0 12px 10px;color:white;}
+.sv-av{width:36px;height:36px;border-radius:50%;overflow:hidden;border:2px solid white;}
+.sv-av img{width:100%;height:100%;object-fit:cover;}
+.sv-body{flex:1;display:flex;align-items:center;justify-content:center;position:relative;}
+.sv-img{max-width:100%;max-height:100%;object-fit:contain;}
+.sv-txt{position:absolute;bottom:20px;left:0;right:0;text-align:center;color:white;font-size:15px;font-family:'Noto Sans Oriya',serif;padding:10px 20px;background:linear-gradient(transparent,rgba(0,0,0,0.6));}
+.sv-close{position:absolute;top:10px;right:14px;color:white;font-size:26px;cursor:pointer;z-index:10;background:none;border:none;}
+
+/* POST */
+.post{background:var(--card);margin:0 12px 16px;border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;border:1px solid var(--border);transition:transform 0.15s;}
+.phd{display:flex;align-items:center;gap:12px;padding:13px 14px;}
+.pav{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--or),#F9A825);display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden;flex-shrink:0;border:2px solid rgba(255,107,0,0.15);box-shadow:0 2px 8px rgba(255,107,0,0.15);}
+.pav img{width:100%;height:100%;object-fit:cover;}
+.pname{font-size:14px;font-weight:700;}
+.ptime{font-size:11px;color:var(--muted);margin-top:1px;}
+.pmenu{margin-left:auto;font-size:20px;color:var(--muted);cursor:pointer;padding:4px;}
+.pmedia-wrap{position:relative;}
+.pmedia{width:100%;aspect-ratio:1;object-fit:cover;display:block;}
+.pmediawrap{width:100%;aspect-ratio:1;background:linear-gradient(135deg,#FFE5CC,#FFF3E0);display:flex;align-items:center;justify-content:center;font-size:64px;}
+/* Double tap heart */
+.heart-anim{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);font-size:80px;pointer-events:none;transition:transform 0.1s;z-index:10;}
+.heart-anim.show{transform:translate(-50%,-50%) scale(1);animation:heartPop 0.8s forwards;}
+@keyframes heartPop{0%{transform:translate(-50%,-50%) scale(0)}30%{transform:translate(-50%,-50%) scale(1.3)}60%{transform:translate(-50%,-50%) scale(1)}100%{transform:translate(-50%,-50%) scale(0);opacity:0}}
+.pcap{padding:10px 14px 8px;font-size:13px;font-family:'Noto Sans Oriya',serif;line-height:1.7;color:var(--text);}
+.pacts{display:flex;gap:0;padding:4px 8px 12px;border-top:1px solid var(--border);margin-top:6px;}
+.pact{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;font-size:13px;color:var(--muted);cursor:pointer;padding:8px;border-radius:10px;transition:all 0.2s;font-weight:600;user-select:none;}
+.pact:active{background:var(--warm);transform:scale(0.94);}
+.pact.liked{color:#E53935;}
+.save-btn.saved{color:#3949AB;}
+
+/* EXPLORE */
+.explore-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-top:2px;}
+.explore-cell{aspect-ratio:1;background:linear-gradient(135deg,#FFE5CC,#FFF3E0);overflow:hidden;cursor:pointer;position:relative;}
+.explore-cell img,.explore-cell video{width:100%;height:100%;object-fit:cover;}
+.explore-cell:nth-child(3n+1):nth-child(3n-2){grid-row:span 1;}
+
+/* PROFILE */
+.phdr{background:linear-gradient(145deg,var(--or) 0%,var(--or2) 50%,#8B2500 100%);padding:28px 18px 22px;text-align:center;color:white;position:relative;overflow:hidden;}
+.phdr::before{content:'';position:absolute;width:200px;height:200px;background:rgba(255,255,255,0.06);border-radius:50%;top:-60px;right:-40px;}
+.bigav{width:86px;height:86px;border-radius:50%;background:white;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:44px;border:4px solid rgba(255,255,255,0.6);overflow:hidden;position:relative;box-shadow:0 6px 20px rgba(0,0,0,0.25);}
+.bigav img{width:100%;height:100%;object-fit:cover;}
+.camico{position:absolute;bottom:0;right:0;width:26px;height:26px;background:white;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.25);}
+.statsrow{display:flex;background:white;border-bottom:1px solid var(--border);}
+.stat{flex:1;text-align:center;padding:14px;border-right:1px solid var(--border);}
+.stat:last-child{border-right:none;}
+.stn{font-size:20px;font-weight:800;color:var(--or);}
+.stl{font-size:10px;color:var(--muted);font-weight:600;margin-top:2px;}
+.abtn{display:block;width:calc(100% - 28px);margin:12px 14px 0;padding:14px;border-radius:var(--r2);border:none;font-size:15px;font-weight:700;cursor:pointer;font-family:'Baloo 2',sans-serif;transition:all 0.25s;}
+.profile-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-top:2px;}
+.profile-thumb{aspect-ratio:1;background:linear-gradient(135deg,#FFE5CC,#FFF3E0);overflow:hidden;cursor:pointer;}
+.profile-thumb img,.profile-thumb video{width:100%;height:100%;object-fit:cover;}
+
+/* UPLOAD */
+.utypes{display:flex;gap:8px;margin:14px 14px 0;}
+.utype{flex:1;padding:11px 8px;border-radius:var(--r2);border:2px solid var(--border);text-align:center;font-size:12px;font-weight:700;color:var(--muted);cursor:pointer;transition:all 0.25s;background:white;}
+.utype.on{border-color:var(--or);background:var(--warm);color:var(--or);box-shadow:0 2px 12px rgba(255,107,0,0.2);}
+.uarea{margin:12px 14px;border:2px dashed var(--or);border-radius:var(--r);padding:30px;text-align:center;cursor:pointer;background:var(--warm);transition:all 0.2s;}
+.uarea:active{background:var(--cream);transform:scale(0.98);}
+.uprev{margin:0 14px 12px;border-radius:var(--r);overflow:hidden;display:none;box-shadow:var(--sh2);}
+.uprev img,.uprev video{width:100%;border-radius:var(--r);}
+.uprog{margin:0 14px 12px;display:none;}
+.uprog-bar{height:8px;background:var(--border);border-radius:8px;overflow:hidden;}
+.uprog-fill{height:100%;background:linear-gradient(90deg,var(--or),var(--or2));border-radius:8px;width:0%;transition:width 0.3s;}
+.tag{background:var(--warm);padding:7px 14px;border-radius:20px;font-size:12px;cursor:pointer;border:1.5px solid rgba(255,107,0,0.3);display:inline-block;margin:0 5px 5px 0;font-weight:600;color:var(--or2);transition:all 0.2s;}
+.tag:active{background:var(--or);color:white;}
+
+/* SEARCH */
+.sbox{margin:14px 14px 12px;position:relative;}
+.sbox .inp{padding-left:46px;margin-bottom:0;background:white;}
+.sico{position:absolute;left:15px;top:50%;transform:translateY(-50%);font-size:18px;}
+.ucard{background:white;border-radius:var(--r);padding:14px;margin:0 14px 10px;display:flex;align-items:center;gap:12px;box-shadow:var(--sh);cursor:pointer;border:1px solid var(--border);transition:all 0.2s;}
+.ucard:active{transform:scale(0.98);background:var(--warm);}
+.uav{width:48px;height:48px;border-radius:50%;background:linear-gradient(135deg,var(--or),#F9A825);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;overflow:hidden;box-shadow:0 2px 8px rgba(255,107,0,0.2);}
+.uav img{width:100%;height:100%;object-fit:cover;}
+.ftag{background:#E8F5E9;color:var(--gr);font-size:11px;padding:4px 10px;border-radius:10px;font-weight:700;}
+
+/* CHAT */
+#chatScr{display:none;position:fixed;inset:0;z-index:250;background:var(--cream);flex-direction:column;}
+#chatScr.open{display:flex;animation:fadeIn 0.2s ease;}
+.chd{background:linear-gradient(135deg,var(--or),var(--or2));padding:13px 16px;display:flex;align-items:center;gap:12px;color:white;flex-shrink:0;box-shadow:0 4px 16px rgba(255,107,0,0.3);}
+.cav{width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden;flex-shrink:0;border:2px solid rgba(255,255,255,0.4);}
+.cav img{width:100%;height:100%;object-fit:cover;}
+.cmsgs{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;background:var(--cream);}
+.cmsg-row{display:flex;align-items:flex-end;gap:8px;}
+.cmsg-row.mine{flex-direction:row-reverse;}
+.cmsgav{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--or),#F9A825);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;overflow:hidden;}
+.cmsgav img{width:100%;height:100%;object-fit:cover;}
+.cmsg{max-width:72%;padding:11px 14px;border-radius:18px;font-size:13px;font-family:'Noto Sans Oriya',serif;line-height:1.6;box-shadow:0 2px 6px rgba(0,0,0,0.06);}
+.cmsg.mine{background:linear-gradient(135deg,var(--or),var(--or2));color:white;border-bottom-right-radius:4px;}
+.cmsg.theirs{background:white;color:var(--text);border-bottom-left-radius:4px;border:1px solid var(--border);}
+.ctime{font-size:10px;opacity:0.65;margin-top:4px;}
+.cinprow{background:white;padding:12px 14px;display:flex;gap:10px;border-top:1px solid var(--border);flex-shrink:0;}
+.cinp{flex:1;padding:12px 16px;border:2px solid var(--border);border-radius:24px;font-size:14px;outline:none;font-family:'Baloo 2',sans-serif;transition:all 0.25s;}
+.cinp:focus{border-color:var(--or);box-shadow:0 0 0 4px var(--or-glow);}
+.csend{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,var(--or),var(--or2));border:none;color:white;font-size:20px;cursor:pointer;flex-shrink:0;box-shadow:0 4px 12px rgba(255,107,0,0.4);transition:all 0.2s;}
+.csend:active{transform:scale(0.9);}
+
+/* NOTIFICATION */
+.notif-item{display:flex;align-items:center;gap:12px;padding:14px;border-bottom:1px solid var(--border);background:white;cursor:pointer;transition:background 0.2s;}
+.notif-item:active{background:var(--warm);}
+.notif-item.unread{background:#FFF8F0;}
+.notif-av{width:44px;height:44px;border-radius:50%;overflow:hidden;flex-shrink:0;background:linear-gradient(135deg,var(--or),#F9A825);display:flex;align-items:center;justify-content:center;font-size:20px;}
+.notif-av img{width:100%;height:100%;object-fit:cover;}
+.notif-txt{flex:1;font-size:13px;font-family:'Noto Sans Oriya',serif;line-height:1.5;}
+.notif-time{font-size:11px;color:var(--muted);}
+.notif-dot{width:8px;height:8px;border-radius:50%;background:var(--or);flex-shrink:0;}
+
+/* CMTS */
+.cmtitem{background:var(--warm);border-radius:var(--r2);padding:11px 13px;margin-bottom:8px;border:1px solid var(--border);}
+.cmtname{font-size:12px;font-weight:700;color:var(--or);}
+.cmttxt{font-size:13px;font-family:'Noto Sans Oriya',serif;margin-top:3px;line-height:1.6;}
+
+/* SAVED */
+.saved-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:14px;}
+.saved-card{background:white;border-radius:var(--r2);overflow:hidden;box-shadow:var(--sh);border:1px solid var(--border);cursor:pointer;}
+.saved-card-img{aspect-ratio:1;background:linear-gradient(135deg,#FFE5CC,#FFF3E0);display:flex;align-items:center;justify-content:center;font-size:36px;overflow:hidden;}
+.saved-card-img img{width:100%;height:100%;object-fit:cover;}
+.saved-card-cap{padding:8px 10px;font-size:12px;font-family:'Noto Sans Oriya',serif;color:var(--text);line-height:1.5;}
+
+/* FRIENDS */
+.fhd{display:flex;align-items:center;gap:10px;padding:14px;border-bottom:1px solid var(--border);background:white;}
+.backbtn{background:var(--warm);border:none;font-size:20px;cursor:pointer;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.sec-hd{padding:14px 16px 8px;font-size:16px;font-weight:800;color:var(--text);display:flex;align-items:center;gap:8px;}
+
+/* GAMES */
+.gbanner{background:linear-gradient(135deg,#1A1A6E,#6A1B9A);padding:20px;margin:14px;border-radius:var(--r);color:white;text-align:center;box-shadow:0 6px 24px rgba(106,27,154,0.35);}
+.ggrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:0 14px 14px;}
+.gitem{background:white;border-radius:var(--r);padding:18px;text-align:center;cursor:pointer;border:1.5px solid var(--border);box-shadow:var(--sh);transition:all 0.25s cubic-bezier(0.34,1.56,0.64,1);}
+.gitem:active{transform:scale(0.94);}
+
+.toast{position:fixed;bottom:85px;left:50%;transform:translateX(-50%);background:rgba(26,13,0,0.92);color:white;padding:11px 24px;border-radius:24px;font-size:13px;font-weight:600;z-index:999;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap;backdrop-filter:blur(8px);}
+.toast.show{opacity:1;}
+.tttcell{aspect-ratio:1;background:var(--warm);border-radius:var(--r2);display:flex;align-items:center;justify-content:center;font-size:28px;cursor:pointer;border:2px solid var(--border);transition:all 0.2s;}
+.tttcell:active{transform:scale(0.9);}
+</style>
+</head>
+<body>
+<!-- ===== AUTH ===== -->
+<div id="authWrap">
+  <div class="alogo">🏘️</div>
+  <div class="atitle">ଗୁଣ୍ଠପଡ଼ା କଥା</div>
+  <div class="asub">ଆମ ଗୁଣ୍ଠପଡ଼ା ର ନିଜ App 🏡</div>
+  <div class="acard">
+    <div class="tabs">
+      <div class="tab on" id="tabL">🔑 Login</div>
+      <div class="tab" id="tabR">✍️ Register</div>
+    </div>
+    <div id="lForm">
+      <div class="amsg" id="lMsg"></div>
+      <input class="inp" type="email" id="lE" placeholder="📧 Email address"/>
+      <div class="pwrap"><input class="inp" type="password" id="lP" placeholder="🔒 Password"/><button class="eye" type="button" onclick="toggleEye('lP',this)">👁️</button></div>
+      <button class="btn" id="lBtn">Login କରନ୍ତୁ 🙏</button>
+      <div style="text-align:center;color:var(--or);font-size:12px;margin-top:10px;cursor:pointer" id="forgotLink">Password ଭୁଲିଗଲେ?</div>
+    </div>
+    <div id="rForm" style="display:none">
+      <div class="amsg" id="rMsg"></div>
+      <input class="inp" type="text" id="rN" placeholder="👤 ପୂରା ନାମ" oninput="vN()"/>
+      <div class="fmsg" id="rNm"></div>
+      <input class="inp" type="text" id="rV" placeholder="🏡 ଗ୍ରାମ (ଯେମିତି: ଗୁଣ୍ଠପଡ଼ା)"/>
+      <input class="inp" type="email" id="rE" placeholder="📧 Gmail address"/>
+      <div class="pwrap"><input class="inp" type="password" id="rP" placeholder="🔒 Password (ଅତି କମ ୬)" oninput="vP()"/><button class="eye" type="button" onclick="toggleEye('rP',this)">👁️</button></div>
+      <div class="str-bar"><div class="str-fill" id="strF"></div></div>
+      <div class="fmsg" id="rPm"></div>
+      <div class="pwrap"><input class="inp" type="password" id="rP2" placeholder="🔒 Password confirm" oninput="vC()"/><button class="eye" type="button" onclick="toggleEye('rP2',this)">👁️</button></div>
+      <div class="fmsg" id="rCm"></div>
+      <button class="btn" id="rBtn">✅ Register କରନ୍ତୁ</button>
+    </div>
+  </div>
+</div>
+
+<!-- FORGOT -->
+<div class="modal" id="forgotMod">
+  <div class="mbox">
+    <button class="mclose" id="forgotClose">✕</button>
+    <div id="fS1">
+      <div style="text-align:center;margin-bottom:14px"><div style="font-size:44px">🔑</div><h3 style="font-family:'Noto Sans Oriya',serif;color:var(--or);margin-top:6px">Password Reset</h3></div>
+      <div class="amsg" id="fMsg"></div>
+      <input class="inp" type="email" id="fE" placeholder="📧 Registered Email"/>
+      <div style="background:var(--warm);border-radius:10px;padding:12px;font-size:12px;color:var(--or2);font-family:'Noto Sans Oriya',serif;margin-bottom:12px;line-height:1.8">1️⃣ Email ଦିଅନ୍ତୁ → 2️⃣ Gmail ଖୋଲନ୍ତୁ → 3️⃣ Link click → 4️⃣ ନୂଆ password</div>
+      <button class="btn" id="fBtn">📨 Reset Email ପଠାନ୍ତୁ</button>
+    </div>
+    <div id="fS2" style="display:none;text-align:center">
+      <div style="font-size:56px">📬</div>
+      <h3 style="font-family:'Noto Sans Oriya',serif;color:var(--gr);margin:10px 0">Email ପଠାଯାଇଛି! ✅</h3>
+      <div id="fEShow" style="background:#E8F5E9;padding:10px;border-radius:10px;font-size:13px;font-weight:700;color:var(--gr);margin-bottom:14px"></div>
+      <button class="btn green" id="fOk">✅ ଠିକ ଅଛି</button>
+    </div>
+  </div>
+</div>
+
+<!-- USER MODAL -->
+<div class="modal" id="userMod">
+  <div class="mbox bottom">
+    <button class="mclose" id="userModClose">✕</button>
+    <div style="text-align:center;margin-bottom:16px">
+      <div id="umAv" style="width:68px;height:68px;border-radius:50%;background:linear-gradient(135deg,var(--or),#F9A825);margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-size:32px;overflow:hidden">😊</div>
+      <div id="umName" style="font-size:18px;font-weight:700"></div>
+      <div id="umVil" style="font-size:12px;color:var(--muted)"></div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button id="addFriendBtn" style="flex:1;padding:11px;border-radius:var(--r2);border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:'Baloo 2',sans-serif;background:linear-gradient(135deg,var(--or),var(--or2));color:white">👥 Add Friend</button>
+      <button id="chatFromModalBtn" style="flex:1;padding:11px;border-radius:var(--r2);border:none;font-size:13px;font-weight:700;cursor:pointer;font-family:'Baloo 2',sans-serif;background:linear-gradient(135deg,#1a237e,#3949AB);color:white">💬 Chat</button>
+    </div>
+  </div>
+</div>
+
+<!-- COMMENT MODAL -->
+<div class="modal" id="cmtMod">
+  <div class="mbox bottom" style="max-height:70vh">
+    <button class="mclose" id="cmtClose">✕</button>
+    <h3 style="font-size:15px;font-weight:700;margin-bottom:12px;color:var(--or);font-family:'Noto Sans Oriya',serif">💬 Comments</h3>
+    <div id="cmtList" style="max-height:260px;overflow-y:auto;margin-bottom:12px"></div>
+    <div style="display:flex;gap:8px">
+      <input class="inp" id="cmtInp" placeholder="Comment ଲେଖନ୍ତୁ..." style="flex:1;margin-bottom:0"/>
+      <button id="cmtSend" style="padding:11px 16px;background:linear-gradient(135deg,var(--or),var(--or2));color:white;border:none;border-radius:var(--r2);font-size:18px;cursor:pointer">➤</button>
+    </div>
+  </div>
+</div>
+
+<!-- TTT -->
+<div class="modal" id="tttMod">
+  <div class="mbox" style="text-align:center">
+    <button class="mclose" onclick="closeTTT()">✕</button>
+    <h3 style="font-size:16px;color:var(--or);margin-bottom:10px">⭕ Tic Tac Toe ❌</h3>
+    <div style="font-size:13px;font-weight:600;margin-bottom:12px" id="tttStat">Player ❌ ର turn</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:12px" id="tttBoard"></div>
+    <button class="btn" onclick="resetTTT()" style="font-size:14px;padding:10px">🔄 ନୂଆ ଖେଳ</button>
+  </div>
+</div>
+
+<!-- STORY VIEWER -->
+<div id="storyViewer">
+  <button class="sv-close" onclick="closeStory()">✕</button>
+  <div class="sv-bar" id="svBar"></div>
+  <div class="sv-hd">
+    <div class="sv-av"><img id="svAvImg" src="" style="display:none"/><span id="svAvEmoji">😊</span></div>
+    <div>
+      <div id="svName" style="font-weight:700;font-size:14px"></div>
+      <div id="svTime" style="font-size:11px;opacity:0.7"></div>
+    </div>
+  </div>
+  <div class="sv-body">
+    <img class="sv-img" id="svImg" src="" style="display:none"/>
+    <div class="sv-txt" id="svTxt"></div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="appWrap">
+  <!-- TOPBAR -->
+  <div class="topbar" id="topbar">
+    <div class="topbar-title">🏘️ ଗୁଣ୍ଠପଡ଼ା କଥା</div>
+    <div class="ticons">
+      <div class="tic" onclick="goScreen('games')" title="Games">🎮</div>
+      <div class="tic" onclick="goFriends()" id="chatTic">💬<div class="badge" id="unreadBadge" style="display:none">0</div></div>
+    </div>
+  </div>
+
+  <div class="screens">
+    <!-- HOME -->
+    <div class="screen on" id="sHome">
+      <!-- STORIES -->
+      <div class="stories-wrap"><div class="stories-inner" id="storiesInner">
+        <div class="story-item" onclick="openStoryUploadModal()">
+          <div class="story-ring add" style="position:relative">
+            <div class="story-av" id="myStoryAv">➕</div>
+          </div>
+          <div class="story-name">ଆପଣଙ୍କ Story</div>
+        </div>
+      </div></div>
+      <!-- FEED -->
+      <div id="postsWrap"><div style="text-align:center;padding:40px;color:var(--muted);font-family:'Noto Sans Oriya',serif"><div style="font-size:48px;margin-bottom:12px">🌾</div>Posts load ହେଉଛି...</div></div>
+    </div>
+
+    <!-- SEARCH / EXPLORE -->
+    <div class="screen" id="sSearch">
+      <div class="sbox"><div class="sico">🔍</div><input class="inp" type="text" id="srchInp" placeholder="ନାମ ଖୋଜନ୍ତୁ..." oninput="doSearch()"/></div>
+      <div id="srchRes">
+        <!-- Explore grid when no search -->
+        <div class="sec-hd">🌟 Explore</div>
+        <div class="explore-grid" id="exploreGrid"></div>
+      </div>
+    </div>
+
+    <!-- UPLOAD -->
+    <div class="screen" id="sUpload">
+      <div class="sec-hd">📤 Post ଶେୟାର</div>
+      <div class="utypes">
+        <div class="utype on" id="utP" onclick="setFT('photo')">📸 Photo</div>
+        <div class="utype" id="utV" onclick="setFT('video')">🎥 Video</div>
+        <div class="utype" id="utD" onclick="setFT('pdf')">📄 PDF</div>
+      </div>
+      <input type="file" id="fInp" style="display:none" accept="image/*" onchange="onFile(this)"/>
+      <div class="uprev" id="uprev">
+        <img id="prevImg" style="display:none;width:100%;border-radius:var(--r);"/>
+        <video id="prevVid" controls style="display:none;width:100%;border-radius:var(--r);"></video>
+        <div id="prevPdf" style="display:none;background:#E8F5E9;padding:16px;text-align:center;border-radius:var(--r)"><div style="font-size:36px">📄</div><div id="pdfNm" style="font-size:13px;color:var(--gr);margin-top:6px;font-weight:700"></div></div>
+      </div>
+      <div class="uarea" id="uarea" onclick="document.getElementById('fInp').click()">
+        <div style="font-size:44px" id="uico">📸</div>
+        <div style="font-size:13px;color:var(--muted);margin-top:8px;font-family:'Noto Sans Oriya',serif" id="utxt">Photo ଚୁଣନ୍ତୁ</div>
+      </div>
+      <div class="uprog" id="uprog"><div class="uprog-bar"><div class="uprog-fill" id="uprogF"></div></div><div style="font-size:12px;color:var(--muted);text-align:center;margin-top:5px" id="uprogT">0%</div></div>
+      <div style="padding:0 14px">
+        <textarea class="inp" id="capInp" placeholder="Caption ଲେଖନ୍ତୁ..." style="min-height:90px;resize:none"></textarea>
+        <div style="margin-bottom:12px">
+          <span class="tag" onclick="addTag('🌾 ଚାଷ')">🌾 ଚାଷ</span>
+          <span class="tag" onclick="addTag('🎉 ଉତ୍ସବ')">🎉 ଉତ୍ସବ</span>
+          <span class="tag" onclick="addTag('📢 ଖବର')">📢 ଖବର</span>
+          <span class="tag" onclick="addTag('😄 ମଜା')">😄 ମଜା</span>
+        </div>
+        <button class="btn" id="postBtn">✅ Share କରନ୍ତୁ</button>
+      </div>
+    </div>
+
+    <!-- NOTIFICATIONS -->
+    <div class="screen" id="sNotifications">
+      <div class="sec-hd">🔔 Notifications</div>
+      <div id="notifList"><div style="text-align:center;padding:40px;color:var(--muted);font-family:'Noto Sans Oriya',serif"><div style="font-size:48px;margin-bottom:12px">🔔</div>ଏଖନ notification ନାହିଁ</div></div>
+    </div>
+
+    <!-- PROFILE -->
+    <div class="screen" id="sProfile">
+      <div class="phdr">
+        <div style="position:relative;width:86px;margin:0 auto 12px">
+          <div class="bigav" id="bigAv"><img id="profPhoto" style="display:none"/><span id="profEmoji">😊</span></div>
+          <div class="camico" onclick="document.getElementById('photoInp').click()">📷</div>
+          <input type="file" id="photoInp" accept="image/*" style="display:none" onchange="uploadProfPhoto(this)"/>
+        </div>
+        <div style="font-size:20px;font-weight:800" id="pName">ଆପଣ</div>
+        <div style="font-size:13px;opacity:0.85" id="pVil">ଗୁଣ୍ଠପଡ଼ା</div>
+        <div style="font-size:11px;opacity:0.65;margin-top:2px" id="pEmail"></div>
+      </div>
+      <div class="statsrow">
+        <div class="stat"><div class="stn" id="myPC">0</div><div class="stl">Posts</div></div>
+        <div class="stat"><div class="stn" id="myFC">0</div><div class="stl">Friends</div></div>
+        <div class="stat" onclick="goScreen('saved')" style="cursor:pointer"><div class="stn">🔖</div><div class="stl">Saved</div></div>
+      </div>
+      <!-- Post grid -->
+      <div style="display:flex;border-bottom:2px solid var(--or);padding:10px 0;margin:8px 14px 0;gap:20px">
+        <div style="font-size:20px;cursor:pointer" onclick="showProfileTab('posts')" id="ptabPost">⊞</div>
+        <div style="font-size:20px;cursor:pointer;opacity:0.4" onclick="showProfileTab('tagged')" id="ptabTag">🏷️</div>
+      </div>
+      <div id="profilePostGrid" class="profile-grid"></div>
+      <button class="abtn btn" onclick="goFriends()" style="margin-top:14px">👥 Friends</button>
+      <button class="abtn btn red" id="logoutBtn" style="margin-bottom:14px">🚪 Logout</button>
+    </div>
+
+    <!-- SAVED -->
+    <div class="screen" id="sSaved">
+      <div class="fhd"><button class="backbtn" onclick="goScreen('profile')">←</button><span style="font-size:17px;font-weight:700">🔖 Saved Posts</span></div>
+      <div id="savedWrap" class="saved-grid"></div>
+    </div>
+
+    <!-- FRIENDS -->
+    <div class="screen" id="sFriends">
+      <div class="fhd"><button class="backbtn" onclick="goScreen('profile')">←</button><span style="font-size:17px;font-weight:700">👥 Friends & Chat</span></div>
+      <div id="friendsWrap"></div>
+    </div>
+
+    <!-- GAMES -->
+    <div class="screen" id="sGames">
+      <div class="gbanner"><div style="font-size:44px;margin-bottom:8px">🎮</div><h2 style="font-size:20px;font-weight:800;margin-bottom:4px">ଗ୍ୟାମ ଜୋନ</h2><div style="font-size:13px;opacity:0.8">ସାଙ୍ଗ ସହ ଖେଳନ୍ତୁ!</div></div>
+      <div class="ggrid">
+        <div class="gitem" onclick="openTTT()"><div style="font-size:36px">⭕</div><div style="font-size:12px;font-weight:700;margin-top:6px">Tic Tac Toe</div><div style="font-size:10px;color:var(--gr)">🟢 Ready</div></div>
+        <div class="gitem" onclick="toast('ଶୀଘ୍ର ✓')"><div style="font-size:36px">🎯</div><div style="font-size:12px;font-weight:700;margin-top:6px">Quiz</div><div style="font-size:10px;color:var(--muted)">🔜 ଶୀଘ୍ର</div></div>
+        <div class="gitem" onclick="toast('ଶୀଘ୍ର ✓')"><div style="font-size:36px">🏏</div><div style="font-size:12px;font-weight:700;margin-top:6px">Cricket</div><div style="font-size:10px;color:var(--muted)">🔜 ଶୀଘ୍ର</div></div>
+        <div class="gitem" onclick="toast('ଶୀଘ୍ର ✓')"><div style="font-size:36px">🃏</div><div style="font-size:12px;font-weight:700;margin-top:6px">ତାସ</div><div style="font-size:10px;color:var(--muted)">🔜 ଶୀଘ୍ର</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV: Instagram style -->
+  <div class="botnav">
+    <div class="nv on" id="nb-home" onclick="goScreen('home')"><div class="ni">🏠</div><div>Home</div></div>
+    <div class="nv" id="nb-search" onclick="goScreen('search')"><div class="ni">🔍</div><div>Explore</div></div>
+    <div class="nv" id="nb-upload" onclick="goScreen('upload')"><div class="ni" style="width:40px;height:40px;background:linear-gradient(135deg,#FF6B00,#D45500);border-radius:12px;display:flex;align-items:center;justify-content:center;color:white;font-size:22px;margin-top:-4px">➕</div><div>Post</div></div>
+    <div class="nv" id="nb-notifications" onclick="goScreen('notifications')">
+      <div class="ni" style="position:relative">🔔<div class="nv-badge" id="nvNotifBadge" style="display:none">0</div></div>
+      <div>Alerts</div>
+    </div>
+    <div class="nv" id="nb-profile" onclick="goScreen('profile')">
+      <div class="ni" id="navProfileAv" style="width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#FF6B00,#F9A825);display:flex;align-items:center;justify-content:center;font-size:14px;overflow:hidden;border:2px solid #eee">😊</div>
+      <div>Profile</div>
+    </div>
+  </div>
+</div>
+
+<!-- STORY UPLOAD MODAL -->
+<div class="modal" id="storyUploadMod">
+  <div class="mbox" style="text-align:center">
+    <button class="mclose" onclick="document.getElementById('storyUploadMod').classList.remove('open')">✕</button>
+    <div style="font-size:44px;margin-bottom:8px">✨</div>
+    <h3 style="font-family:'Noto Sans Oriya',serif;color:var(--or);margin-bottom:6px">Story Add କରନ୍ତୁ</h3>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:18px;font-family:'Noto Sans Oriya',serif">24 ଘଣ୍ଟା ପରେ ଅଦୃଶ୍ୟ ହୋଇଯିବ</p>
+    <input type="file" id="storyFileInp" style="display:none" onchange="onStoryFile(this)"/>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button onclick="openStoryPicker('image/*')" style="width:100%;padding:14px;border-radius:var(--r2);border:2px solid var(--border);background:var(--warm);font-size:15px;font-weight:700;cursor:pointer;font-family:'Baloo 2',sans-serif;color:var(--or2);display:flex;align-items:center;gap:10px;transition:all 0.2s">
+        <span style="font-size:28px">📸</span>
+        <div style="text-align:left"><div>Photo Story</div><div style="font-size:11px;color:var(--muted);font-weight:400">ଫଟୋ share କରନ୍ତୁ</div></div>
+      </button>
+      <button onclick="openStoryPicker('video/*')" style="width:100%;padding:14px;border-radius:var(--r2);border:2px solid var(--border);background:var(--warm);font-size:15px;font-weight:700;cursor:pointer;font-family:'Baloo 2',sans-serif;color:var(--or2);display:flex;align-items:center;gap:10px;transition:all 0.2s">
+        <span style="font-size:28px">🎥</span>
+        <div style="text-align:left"><div>Video Story</div><div style="font-size:11px;color:var(--muted);font-weight:400">ଭିଡ଼ିଓ share କରନ୍ତୁ</div></div>
+      </button>
+      <button onclick="openStoryText()" style="width:100%;padding:14px;border-radius:var(--r2);border:2px solid var(--border);background:var(--warm);font-size:15px;font-weight:700;cursor:pointer;font-family:'Baloo 2',sans-serif;color:var(--or2);display:flex;align-items:center;gap:10px;transition:all 0.2s">
+        <span style="font-size:28px">🎵</span>
+        <div style="text-align:left"><div>Audio / Text Story</div><div style="font-size:11px;color:var(--muted);font-weight:400">Text ବା audio share</div></div>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- STORY TEXT MODAL -->
+<div class="modal" id="storyTextMod">
+  <div class="mbox">
+    <button class="mclose" onclick="document.getElementById('storyTextMod').classList.remove('open')">✕</button>
+    <h3 style="font-family:'Noto Sans Oriya',serif;color:var(--or);margin-bottom:12px">✍️ Text / Audio Story</h3>
+    <textarea class="inp" id="storyTextInp" placeholder="ଆପଣଙ୍କ story ଲେଖନ୍ତୁ..." style="min-height:100px;resize:none;margin-bottom:10px"></textarea>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px;font-family:'Noto Sans Oriya',serif">🎵 Audio file (optional)</div>
+    <input type="file" id="storyAudioInp" accept="audio/*" style="display:none" onchange="onStoryAudio(this)"/>
+    <button onclick="document.getElementById('storyAudioInp').click()" style="width:100%;padding:12px;border-radius:var(--r2);border:2px dashed var(--border);background:var(--warm);font-size:13px;font-weight:700;cursor:pointer;margin-bottom:12px;color:var(--muted)">🎵 Audio File ଚୁଣନ୍ତୁ (optional)</button>
+    <div id="storyAudioName" style="font-size:12px;color:var(--gr);margin-bottom:12px;display:none;font-family:'Noto Sans Oriya',serif"></div>
+    <button class="btn" id="storyTextPostBtn" onclick="postTextStory()">✅ Story Post କରନ୍ତୁ</button>
+  </div>
+</div>
+
+<!-- CHAT SCREEN -->
+<div id="chatScr">
+  <div class="chd">
+    <button onclick="closeChat()" style="background:none;border:none;color:white;font-size:24px;cursor:pointer;flex-shrink:0">←</button>
+    <div class="cav" id="chatAv">😊</div>
+    <div style="flex:1"><div id="chatNm" style="font-weight:700;font-size:15px"></div><div style="font-size:11px;opacity:0.8">Online</div></div>
+    <button onclick="startVideoCall()" style="background:rgba(255,255,255,0.2);border:none;color:white;width:38px;height:38px;border-radius:50%;font-size:20px;cursor:pointer;display:flex;align-items:center;justify-content:center">📹</button>
+  </div>
+  <div class="cmsgs" id="chatMsgs"></div>
+  <div class="cinprow">
+    <input class="cinp" id="chatInp" placeholder="Message ଲେଖନ୍ତୁ..."/>
+    <button class="csend" id="chatSendBtn">➤</button>
+  </div>
+</div>
+
+<div class="toast" id="toastEl"></div>
+
+<script>
+firebase.initializeApp({
+  apiKey:"AIzaSyA9xVHx2ih0oERTkXFU2LQ4BJyBvQcTSxU",
+  authDomain:"gunthapada-katha.firebaseapp.com",
+  projectId:"gunthapada-katha",
+  storageBucket:"gunthapada-katha.firebasestorage.app",
+  messagingSenderId:"1081967542840",
+  appId:"1:1081967542840:web:ae3dc7870cc579f9919ccd"
+});
+const auth=firebase.auth(), db=firebase.firestore(), FS=firebase.firestore.FieldValue;
+let me=null,myD=null,allUsers=[],selUser=null,chatFriend=null,chatUnsub=null,curPostId=null,savedPosts=[];
+
+// ===== AUTH =====
+auth.onAuthStateChanged(async u=>{
+  if(u){
+    me=u;
+    document.getElementById('authWrap').style.display='none';
+    document.getElementById('appWrap').style.display='flex';
+    toast('ସ୍ୱାଗତ! 🙏');
+    loadMyData(); loadPosts(); loadStories(); loadExplore();
+    setTimeout(checkUnread,2000); setInterval(checkUnread,30000);
+    loadSavedPosts();
+  } else {
+    me=null; myD=null;
+    document.getElementById('authWrap').style.display='flex';
+    document.getElementById('appWrap').style.display='none';
+  }
+});
+
+async function loadMyData(){
+  try{
+    const d=await db.collection('users').doc(me.uid).get();
+    if(d.exists){ myD=d.data(); updateProfileUI(); loadProfileGrid(); }
+    loadFriendCount();
+  }catch(e){}
+}
+
+function updateProfileUI(){
+  if(!myD) return;
+  document.getElementById('pName').textContent=myD.name||me.displayName||'ଆପଣ';
+  document.getElementById('pVil').textContent=myD.village||'ଗୁଣ୍ଠପଡ଼ା';
+  document.getElementById('pEmail').textContent='📧 '+me.email;
+  if(myD.photoUrl){
+    document.getElementById('profPhoto').src=myD.photoUrl;
+    document.getElementById('profPhoto').style.display='block';
+    document.getElementById('profEmoji').style.display='none';
+    // Nav profile avatar (bottom nav)
+    const na=document.getElementById('navProfileAv');
+    if(na){na.innerHTML=`<img src="${myD.photoUrl}" style="width:100%;height:100%;object-fit:cover;"/>`;na.style.border='2px solid var(--or)';}
+    // My story avatar
+    const sa=document.getElementById('myStoryAv');
+    sa.innerHTML=`<img src="${myD.photoUrl}" style="width:100%;height:100%;object-fit:cover;"/>`;
+    updateMyStoryCicle();
+  }
+}
+
+// ===== LOGIN =====
+document.getElementById('lBtn').onclick=async function(){
+  const e=document.getElementById('lE').value.trim(), p=document.getElementById('lP').value;
+  if(!e||!e.includes('@')){showMsg('lMsg','Valid email ❌','err');return;}
+  if(!p){showMsg('lMsg','Password ❌','err');return;}
+  this.disabled=true; this.textContent='⏳ Login...';
+  try{await auth.signInWithEmailAndPassword(e,p);}
+  catch(err){
+    let m='Login ବିଫଳ ❌';
+    if(err.code==='auth/invalid-credential'||err.code==='auth/user-not-found') m='Email/Password ଭୁଲ ❌';
+    if(err.code==='auth/too-many-requests') m='ଟିକ ଅପେକ୍ଷା ⏳';
+    showMsg('lMsg',m,'err'); this.disabled=false; this.textContent='Login କରନ୍ତୁ 🙏';
+  }
+};
+
+// ===== REGISTER =====
+document.getElementById('rBtn').onclick=async function(){
+  const n=document.getElementById('rN').value.trim(), v=document.getElementById('rV').value.trim();
+  const e=document.getElementById('rE').value.trim(), p=document.getElementById('rP').value, p2=document.getElementById('rP2').value;
+  if(!n||n.length<2){showMsg('rMsg','ନାମ ❌','err');return;}
+  if(!v){showMsg('rMsg','ଗ୍ରାମ ❌','err');return;}
+  if(!e||!e.includes('@')){showMsg('rMsg','Email ❌','err');return;}
+  if(p.length<6){showMsg('rMsg','Password ❌','err');return;}
+  if(p!==p2){showMsg('rMsg','Password ମିଳୁ ନାହିଁ ❌','err');return;}
+  this.disabled=true; this.textContent='⏳...';
+  try{
+    const c=await auth.createUserWithEmailAndPassword(e,p);
+    await c.user.updateProfile({displayName:n});
+    await db.collection('users').doc(c.user.uid).set({name:n,village:v,email:e,uid:c.user.uid,joined:FS.serverTimestamp(),posts:0});
+    showMsg('rMsg','🎉 ସ୍ୱାଗତ '+n+'!','ok');
+  }catch(err){
+    let m='Registration ❌';
+    if(err.code==='auth/email-already-in-use') m='Email ଆଗରୁ ❌';
+    showMsg('rMsg',m,'err'); this.disabled=false; this.textContent='✅ Register';
+  }
+};
+
+document.getElementById('logoutBtn').onclick=async()=>{await auth.signOut();toast('Logout 👋');};
+
+// TABS
+document.getElementById('tabL').onclick=function(){this.classList.add('on');document.getElementById('tabR').classList.remove('on');document.getElementById('lForm').style.display='block';document.getElementById('rForm').style.display='none';};
+document.getElementById('tabR').onclick=function(){this.classList.add('on');document.getElementById('tabL').classList.remove('on');document.getElementById('rForm').style.display='block';document.getElementById('lForm').style.display='none';};
+
+// FORGOT
+document.getElementById('forgotLink').onclick=()=>{document.getElementById('forgotMod').classList.add('open');document.getElementById('fS1').style.display='block';document.getElementById('fS2').style.display='none';};
+document.getElementById('forgotClose').onclick=()=>document.getElementById('forgotMod').classList.remove('open');
+document.getElementById('fBtn').onclick=async function(){
+  const e=document.getElementById('fE').value.trim();
+  if(!e||!e.includes('@')){showMsg('fMsg','Valid email ❌','err');return;}
+  this.disabled=true; this.textContent='⏳...';
+  try{await auth.sendPasswordResetEmail(e);document.getElementById('fS1').style.display='none';document.getElementById('fS2').style.display='block';document.getElementById('fEShow').textContent='📧 '+e;}
+  catch(err){showMsg('fMsg',err.code==='auth/user-not-found'?'Email ନାହିଁ ❌':'Error ❌','err');this.disabled=false;this.textContent='📨 Send';}
+};
+document.getElementById('fOk').onclick=()=>document.getElementById('forgotMod').classList.remove('open');
+
+// ===== STORIES =====
+function loadStories(){
+  db.collection('stories').where('expiresAt','>',new Date()).orderBy('createdAt','asc').limit(30).onSnapshot(snap=>{
+    const inner=document.getElementById('storiesInner');
+    const addBtn=inner.children[0].cloneNode(true);
+    inner.innerHTML='';
+    inner.appendChild(addBtn);
+
+    // Group stories by user
+    const userMap={};
+    snap.forEach(ds=>{
+      const s={...ds.data(), _id:ds.id};
+      if(!userMap[s.uid]) userMap[s.uid]=[];
+      userMap[s.uid].push(s);
+    });
+
+    // Show own story first
+    const orderedUids=Object.keys(userMap);
+    const myIdx=orderedUids.indexOf(me?.uid);
+    if(myIdx>-1){orderedUids.splice(myIdx,1);orderedUids.unshift(me.uid);}
+
+    orderedUids.forEach(uid=>{
+      const stories=userMap[uid];
+      const first=stories[0];
+      const isMe=uid===me?.uid;
+      const item=document.createElement('div');
+      item.className='story-item';
+      // Click → view all stories of this user
+      item.onclick=()=>viewUserStories(stories, isMe);
+      const avC=first.authorPhoto?`<img src="${first.authorPhoto}" style="width:100%;height:100%;object-fit:cover;"/>`:(first.authorEmoji||'😊');
+      const label=isMe?'ଆପଣ':first.authorName||'?';
+      const ringStyle=isMe?'background:linear-gradient(45deg,#FF6B00,#F9A825,#1A6B3C)':'';
+      const count=stories.length>1?`<div style="position:absolute;top:-4px;right:-4px;background:var(--or);color:white;font-size:9px;width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;border:2px solid white">${stories.length}</div>`:'';
+      item.innerHTML=`<div class="story-ring ${isMe?'':''}""style="position:relative;${ringStyle}"><div class="story-av">${avC}</div>${count}</div><div class="story-name" style="${isMe?'color:var(--or);font-weight:700':''}">${label}</div>`;
+      if(isMe){
+        inner.insertBefore(item, inner.children[1]||null);
+        // Update add button
+        const myAv=document.getElementById('myStoryAv');
+        if(myAv&&first.authorPhoto){myAv.innerHTML=`<img src="${first.authorPhoto}" style="width:100%;height:100%;object-fit:cover;"/>`;}
+      } else {
+        inner.appendChild(item);
+      }
+    });
+  });
+}
+
+let svTimer=null, svStories=[], svIdx=0, svIsMe=false;
+
+function viewUserStories(stories, isMe){
+  svStories=stories; svIdx=0; svIsMe=isMe;
+  showStoryAt(0);
+}
+
+function showStoryAt(idx){
+  if(idx>=svStories.length){closeStory();return;}
+  svIdx=idx;
+  const s=svStories[idx];
+  const viewer=document.getElementById('storyViewer');
+  viewer.classList.add('open');
+  document.getElementById('svName').textContent=svIsMe?'ଆପଣଙ୍କ Story':s.authorName||'?';
+  document.getElementById('svTime').textContent=(idx+1)+'/'+svStories.length+' • 24hr';
+  const avImg=document.getElementById('svAvImg'), avEmoji=document.getElementById('svAvEmoji');
+  if(s.authorPhoto){avImg.src=s.authorPhoto;avImg.style.display='block';avEmoji.style.display='none';}
+  else{avImg.style.display='none';avEmoji.style.display='block';avEmoji.textContent=s.authorEmoji||'😊';}
+  const img=document.getElementById('svImg');
+  if(s.mediaUrl&&s.mediaType!=='text'){img.src=s.mediaUrl;img.style.display='block';}
+  else img.style.display='none';
+  document.getElementById('svTxt').textContent=s.caption||'';
+  // Delete button (only own stories)
+  let delBtn=document.getElementById('svDeleteBtn');
+  if(!delBtn){
+    delBtn=document.createElement('button');
+    delBtn.id='svDeleteBtn';
+    delBtn.style.cssText='position:absolute;top:10px;left:14px;background:rgba(200,0,0,0.7);border:none;color:white;padding:6px 12px;border-radius:20px;font-size:12px;cursor:pointer;font-weight:700;z-index:10;';
+    delBtn.textContent='🗑️ Delete';
+    viewer.querySelector('.sv-body').appendChild(delBtn);
+  }
+  delBtn.style.display=svIsMe?'block':'none';
+  delBtn.onclick=async()=>{
+    if(confirm('Story delete କରିବେ?')){
+      try{await db.collection('stories').doc(s._id).delete();toast('🗑️ Story deleted!');
+      svStories=svStories.filter((_,i)=>i!==svIdx);
+      if(svStories.length===0){closeStory();}else{showStoryAt(Math.min(svIdx,svStories.length-1));}}
+      catch(e){toast('Error!');}
+    }
+  };
+  // Progress bars
+  const bar=document.getElementById('svBar');
+  bar.innerHTML=svStories.map((_,i)=>`<div class="sv-seg"><div class="sv-fill" style="${i<idx?'width:100%':i===idx?'':'width:0%'}"></div></div>`).join('');
+  if(svTimer) clearTimeout(svTimer);
+  svTimer=setTimeout(()=>showStoryAt(idx+1), 5000);
+  // Tap left/right
+  viewer.onclick=(e)=>{
+    const x=e.clientX, w=window.innerWidth;
+    if(x<w/3) showStoryAt(Math.max(0,svIdx-1));
+    else if(x>w*2/3) showStoryAt(svIdx+1);
+  };
+}
+
+function closeStory(){
+  document.getElementById('storyViewer').classList.remove('open');
+  if(svTimer){clearTimeout(svTimer);svTimer=null;}
+  svStories=[]; svIdx=0;
+}
+
+// ===== POSTS =====
+function loadPosts(){
+  db.collection('posts').orderBy('createdAt','desc').limit(20).onSnapshot(snap=>{
+    const w=document.getElementById('postsWrap');
+    if(snap.empty){w.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted);font-family:\'Noto Sans Oriya\',serif"><div style="font-size:52px;margin-bottom:12px">🌱</div><div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:6px">ଏଖନ post ନାହିଁ</div>ଆଗେ post କରନ୍ତୁ!</div>';return;}
+    w.innerHTML=''; let mine=0;
+    const ems=['🌾','🌺','🏡','🎉','🌅','🌿'];
+    snap.forEach(ds=>{
+      const p=ds.data(), id=ds.id;
+      if(p.uid===me?.uid) mine++;
+      const t=p.createdAt?.toDate?p.createdAt.toDate().toLocaleString('or-IN'):'';
+      const em=ems[Math.abs(id.charCodeAt(0))%ems.length];
+      const liked=(p.likedBy||[]).includes(me?.uid);
+      const isSaved=savedPosts.includes(id);
+      let media='';
+      if(p.mediaUrl&&p.mediaType==='photo') media=`<div class="pmedia-wrap"><img class="pmedia" src="${p.mediaUrl}" loading="lazy"/><div class="heart-anim" id="ha-${id}">❤️</div></div>`;
+      else if(p.mediaUrl&&p.mediaType==='video') media=`<div class="pmedia-wrap"><video class="pmedia" src="${p.mediaUrl}" controls></video><div class="heart-anim" id="ha-${id}">❤️</div></div>`;
+      else if(p.mediaUrl&&p.mediaType==='pdf') media=`<a href="${p.mediaUrl}" target="_blank" style="display:flex;align-items:center;justify-content:center;padding:16px;background:#E8F5E9;color:var(--gr);font-weight:700;text-decoration:none">📄 PDF ଖୋଲନ୍ତୁ</a>`;
+      else media=`<div class="pmediawrap">${em}<div class="heart-anim" id="ha-${id}">❤️</div></div>`;
+      const avContent=p.authorPhoto?`<img src="${p.authorPhoto}" style="width:100%;height:100%;object-fit:cover;"/>`:(p.authorEmoji||'😊');
+      const avBg=p.authorPhoto?'white':'linear-gradient(135deg,var(--or),#F9A825)';
+      const div=document.createElement('div'); div.className='post';
+      div.innerHTML=`<div class="phd"><div class="pav" style="background:${avBg}">${avContent}</div><div><div class="pname">${p.authorName||'?'}</div><div class="ptime">${t} • ${p.village||'ଗ'}</div></div><div class="pmenu" id="pm-${id}">⋯</div></div>${media}<div class="pcap or">${p.caption||''}</div><div class="pacts"><div class="pact ${liked?'liked':''}" id="lk-${id}" style="color:${liked?'#E53935':'var(--muted)'}">${liked?'❤️':'🤍'} <span id="lc-${id}">${p.likes||0}</span></div><div class="pact" id="cm-${id}">💬 <span>${p.comments||0}</span></div><div class="pact save-btn ${isSaved?'saved':''}" id="sv-${id}" style="color:${isSaved?'#3949AB':'var(--muted)'}">🔖</div><div class="pact">🔗</div></div>`;
+      // Double tap like
+      const mw=div.querySelector('.pmedia-wrap,.pmediawrap');
+      if(mw){let lt=0;mw.addEventListener('click',()=>{const now=Date.now();if(now-lt<400){likePost(id,liked,div);showHeart(id);}lt=now;});}
+      // Like btn
+      div.querySelector(`#lk-${id}`).addEventListener('click',()=>likePost(id,(p.likedBy||[]).includes(me?.uid),div));
+      // Comment
+      div.querySelector(`#cm-${id}`).addEventListener('click',()=>openComments(id));
+      // Save
+      div.querySelector(`#sv-${id}`).addEventListener('click',()=>toggleSave(id,div));
+      // Share
+      div.querySelectorAll('.pact')[3].addEventListener('click',()=>{
+        if(navigator.share) navigator.share({title:'ଗୁଣ୍ଠପଡ଼ା କଥା',text:p.caption||'',url:window.location.href});
+        else toast('Link copy ❌');
+      });
+      // ⋯ Menu (delete for own posts)
+      const menuBtn=div.querySelector(`#pm-${id}`);
+      menuBtn.addEventListener('click',(e)=>{
+        e.stopPropagation();
+        // Remove any existing menu
+        document.querySelectorAll('.post-menu-popup').forEach(el=>el.remove());
+        const popup=document.createElement('div');
+        popup.className='post-menu-popup';
+        popup.style.cssText='position:absolute;top:40px;right:10px;background:white;border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,0.15);z-index:200;overflow:hidden;min-width:140px;border:1px solid var(--border);';
+        const isOwn=p.uid===me?.uid;
+        popup.innerHTML=isOwn?
+          `<div style="padding:12px 16px;font-size:14px;cursor:pointer;color:#e53935;font-weight:700;display:flex;align-items:center;gap:8px" id="del-${id}">🗑️ Delete Post</div>
+           <div style="padding:12px 16px;font-size:14px;cursor:pointer;color:var(--text);border-top:1px solid var(--border)">🔗 Share</div>`:
+          `<div style="padding:12px 16px;font-size:14px;cursor:pointer;color:var(--text)">🔗 Share</div>
+           <div style="padding:12px 16px;font-size:14px;cursor:pointer;color:var(--muted);border-top:1px solid var(--border)">🚩 Report</div>`;
+        div.style.position='relative';
+        div.appendChild(popup);
+        if(isOwn){
+          popup.querySelector(`#del-${id}`).addEventListener('click',async()=>{
+            popup.remove();
+            if(confirm('Post delete କରିବେ?')){
+              try{await db.collection('posts').doc(id).delete();div.remove();toast('🗑️ Post deleted!');
+              }catch(e){toast('Error!');}
+            }
+          });
+        }
+        // Close on outside click
+        setTimeout(()=>document.addEventListener('click',function h(){popup.remove();document.removeEventListener('click',h);},true),100);
+      });
+      w.appendChild(div);
+    });
+    document.getElementById('myPC').textContent=mine;
+  });
+}
+
+function showHeart(id){const h=document.getElementById('ha-'+id);if(h){h.classList.add('show');setTimeout(()=>h.classList.remove('show'),900);}}
+
+async function likePost(id,wasLiked,div){
+  if(!me) return;
+  const ref=db.collection('posts').doc(id);
+  const btn=div.querySelector(`#lk-${id}`);
+  const cnt=div.querySelector(`#lc-${id}`);
+  const newLiked=!wasLiked;
+  btn.style.color=newLiked?'#E53935':'var(--muted)';
+  btn.innerHTML=(newLiked?'❤️':'🤍')+' <span id="lc-'+id+'">'+(parseInt(cnt.textContent)+(newLiked?1:-1))+'</span>';
+  btn.className='pact '+(newLiked?'liked':'');
+  await ref.update({likes:FS.increment(newLiked?1:-1),likedBy:newLiked?FS.arrayUnion(me.uid):FS.arrayRemove(me.uid)});
+  if(newLiked) showHeart(id);
+}
+
+// ===== SAVE =====
+async function loadSavedPosts(){
+  if(!me) return;
+  try{const s=await db.collection('users').doc(me.uid).get();savedPosts=(s.data()?.savedPosts||[]);}catch{}
+}
+
+async function toggleSave(postId,div){
+  if(!me) return;
+  const isSaved=savedPosts.includes(postId);
+  const btn=div.querySelector(`#sv-${postId}`);
+  if(isSaved){savedPosts=savedPosts.filter(p=>p!==postId);btn.style.color='var(--muted)';btn.classList.remove('saved');toast('Saved ରୁ ହଟିଗଲା');}
+  else{savedPosts.push(postId);btn.style.color='#3949AB';btn.classList.add('saved');toast('🔖 Saved!');}
+  await db.collection('users').doc(me.uid).update({savedPosts:isSaved?FS.arrayRemove(postId):FS.arrayUnion(postId)});
+}
+
+async function loadSavedScreen(){
+  const wrap=document.getElementById('savedWrap');
+  wrap.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted)">⏳ Loading...</div>';
+  if(!savedPosts.length){wrap.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted);font-family:\'Noto Sans Oriya\',serif"><div style="font-size:48px">🔖</div>Saved posts ନାହିଁ</div>';return;}
+  wrap.innerHTML='';
+  for(const pid of savedPosts){
+    try{
+      const d=await db.collection('posts').doc(pid).get();
+      if(!d.exists) continue;
+      const p=d.data();
+      const card=document.createElement('div'); card.className='saved-card';
+      let imgHtml='';
+      if(p.mediaUrl&&p.mediaType==='photo') imgHtml=`<img src="${p.mediaUrl}" style="width:100%;height:100%;object-fit:cover;"/>`;
+      else imgHtml='<div style="font-size:32px">'+(['🌾','🌺','🏡','🎉'][Math.abs(pid.charCodeAt(0))%4])+'</div>';
+      card.innerHTML=`<div class="saved-card-img">${imgHtml}</div><div class="saved-card-cap or">${(p.caption||'').substring(0,40)}${p.caption?.length>40?'...':''}</div>`;
+      wrap.appendChild(card);
+    }catch{}
+  }
+}
+
+// ===== EXPLORE =====
+function loadExplore(){
+  db.collection('posts').orderBy('likes','desc').limit(9).onSnapshot(snap=>{
+    const grid=document.getElementById('exploreGrid');
+    grid.innerHTML='';
+    snap.forEach(ds=>{
+      const p=ds.data();
+      const cell=document.createElement('div'); cell.className='explore-cell';
+      if(p.mediaUrl&&p.mediaType==='photo') cell.innerHTML=`<img src="${p.mediaUrl}" loading="lazy"/>`;
+      else cell.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:32px">'+(['🌾','🌺','🏡','🎉'][Math.abs(ds.id.charCodeAt(0))%4])+'</div>';
+      grid.appendChild(cell);
+    });
+  });
+}
+
+// ===== PROFILE GRID =====
+function loadProfileGrid(){
+  if(!me) return;
+  db.collection('posts').where('uid','==',me.uid).orderBy('createdAt','desc').onSnapshot(snap=>{
+    const grid=document.getElementById('profilePostGrid');
+    grid.innerHTML='';
+    document.getElementById('myPC').textContent=snap.size;
+    snap.forEach(ds=>{
+      const p=ds.data();
+      const cell=document.createElement('div'); cell.className='profile-thumb';
+      if(p.mediaUrl&&p.mediaType==='photo') cell.innerHTML=`<img src="${p.mediaUrl}"/>`;
+      else if(p.mediaUrl&&p.mediaType==='video') cell.innerHTML=`<video src="${p.mediaUrl}"></video>`;
+      else cell.innerHTML='<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:28px">'+(['🌾','🌺','🏡','🎉'][Math.abs(ds.id.charCodeAt(0))%4])+'</div>';
+      grid.appendChild(cell);
+    });
+  });
+}
+
+// ===== UPLOAD =====
+const CLOUD='def794l3v',PRESET='gunthapada_katha';
+let selFile=null,fType='photo';
+
+function setFT(t){
+  fType=t; selFile=null;
+  document.getElementById('uprev').style.display='none';
+  ['P','V','S','D'].forEach((x,i)=>{const tp=['photo','video','story','pdf'][i];const el=document.getElementById('ut'+x);if(el)el.classList.toggle('on',tp===t);});
+  const inp=document.getElementById('fInp'),ico=document.getElementById('uico'),txt=document.getElementById('utxt');
+  if(t==='photo'){inp.accept='image/*';ico.textContent='📸';txt.textContent='Photo ଚୁଣନ୍ତୁ';}
+  else if(t==='video'){inp.accept='video/*';ico.textContent='🎥';txt.textContent='Video ଚୁଣନ୍ତୁ';}
+  else if(t==='story'){inp.accept='image/*';ico.textContent='✨';txt.textContent='Story Photo ଚୁଣନ୍ତୁ (24 hrs)';}
+  else{inp.accept='application/pdf';ico.textContent='📄';txt.textContent='PDF ଚୁଣନ୍ତୁ';}
+}
+
+function onFile(inp){
+  const f=inp.files[0]; if(!f) return;
+  if(f.size>(fType==='video'?50:10)*1024*1024){toast('ଫାଇଲ ବଡ଼!');return;}
+  selFile=f;
+  const url=URL.createObjectURL(f);
+  document.getElementById('uprev').style.display='block';
+  document.getElementById('prevImg').style.display='none';
+  document.getElementById('prevVid').style.display='none';
+  document.getElementById('prevPdf').style.display='none';
+  if(fType==='photo'||fType==='story'){const i=document.getElementById('prevImg');i.src=url;i.style.display='block';}
+  else if(fType==='video'){const v=document.getElementById('prevVid');v.src=url;v.style.display='block';}
+  else{document.getElementById('pdfNm').textContent=f.name;document.getElementById('prevPdf').style.display='block';}
+  toast('✅ File Ready!');
+}
+
+function uploadCloud(file,type){
+  const rt=type==='video'?'video':type==='pdf'?'raw':'image';
+  const url=`https://api.cloudinary.com/v1_1/${CLOUD}/${rt}/upload`;
+  const fd=new FormData(); fd.append('file',file); fd.append('upload_preset',PRESET);
+  const pf=document.getElementById('uprogF'),pt=document.getElementById('uprogT');
+  document.getElementById('uprog').style.display='block';
+  return new Promise((res,rej)=>{
+    const xhr=new XMLHttpRequest();
+    xhr.upload.onprogress=e=>{if(e.lengthComputable){const p=Math.round(e.loaded/e.total*100);pf.style.width=p+'%';pt.textContent=p+'%';}};
+    xhr.onload=()=>{document.getElementById('uprog').style.display='none';xhr.status===200?res(JSON.parse(xhr.responseText).secure_url):rej(new Error('Failed'));};
+    xhr.onerror=()=>{document.getElementById('uprog').style.display='none';rej(new Error('Network'));};
+    xhr.open('POST',url); xhr.send(fd);
+  });
+}
+
+document.getElementById('postBtn').onclick=async function(){
+  const cap=document.getElementById('capInp').value.trim();
+  if(!cap&&!selFile){toast('Caption ବା File ❌');return;}
+  this.disabled=true; this.textContent='⏳ Uploading...';
+  try{
+    let mediaUrl=null,mediaType=null;
+    if(selFile){toast('⏳ Uploading...');mediaUrl=await uploadCloud(selFile,fType);mediaType=fType==='story'?'photo':fType;}
+    if(fType==='story'){
+      // Post as story
+      const exp=new Date(Date.now()+24*60*60*1000);
+      await db.collection('stories').add({caption:cap,authorName:myD?.name||me?.displayName||'ଆପଣ',authorEmoji:'😊',authorPhoto:myD?.photoUrl||null,uid:me.uid,mediaUrl,expiresAt:exp,createdAt:FS.serverTimestamp()});
+      toast('✨ Story posted for 24hrs!');
+    } else {
+      await db.collection('posts').add({caption:cap,authorName:myD?.name||me?.displayName||'ଆପଣ',authorEmoji:'😊',authorPhoto:myD?.photoUrl||null,village:myD?.village||'ଗ',uid:me.uid,likes:0,comments:0,mediaUrl,mediaType,createdAt:FS.serverTimestamp()});
+      toast('🎉 Post ହୋଇଗଲା!');
+    }
+    document.getElementById('capInp').value=''; selFile=null;
+    document.getElementById('uprev').style.display='none';
+    document.getElementById('fInp').value='';
+    goScreen('home');
+  }catch(e){toast('Error: '+e.message);}
+  this.disabled=false; this.textContent='✅ Share';
+};
+
+// ===== PROFILE PHOTO =====
+async function uploadProfPhoto(inp){
+  const f=inp.files[0]; if(!f) return;
+  if(f.size>5*1024*1024){toast('5MB max!');return;}
+  toast('⏳ Uploading...');
+  const fd=new FormData(); fd.append('file',f); fd.append('upload_preset',PRESET);
+  try{
+    const r=await fetch(`https://api.cloudinary.com/v1_1/${CLOUD}/image/upload`,{method:'POST',body:fd});
+    const d=await r.json(); const url=d.secure_url;
+    await db.collection('users').doc(me.uid).update({photoUrl:url});
+    myD={...myD,photoUrl:url};
+    document.getElementById('profPhoto').src=url; document.getElementById('profPhoto').style.display='block'; document.getElementById('profEmoji').style.display='none';
+    const navAv=document.getElementById('navProfileAv');
+    if(navAv){navAv.innerHTML=`<img src="${url}" style="width:100%;height:100%;object-fit:cover;"/>`;navAv.style.border='2px solid var(--or)';}
+    // Update posts & friends
+    const posts=await db.collection('posts').where('uid','==',me.uid).get();
+    const b1=db.batch(); posts.forEach(p=>b1.update(p.ref,{authorPhoto:url})); await b1.commit();
+    const frs=await db.collection('friends').where('friendUid','==',me.uid).get();
+    const b2=db.batch(); frs.forEach(f=>b2.update(f.ref,{friendPhoto:url})); await b2.commit();
+    toast('✅ Photo updated!');
+  }catch(e){toast('Error!');}
+}
+
+// ===== SEARCH =====
+async function loadAllUsers(){if(allUsers.length)return;const s=await db.collection('users').get();allUsers=s.docs.map(d=>d.data());}
+
+async function doSearch(){
+  const q=document.getElementById('srchInp').value.trim().toLowerCase();
+  const res=document.getElementById('srchRes');
+  if(!q){
+    res.innerHTML='<div class="sec-hd">🌟 Explore</div><div class="explore-grid" id="exploreGrid"></div>';
+    loadExplore(); return;
+  }
+  await loadAllUsers();
+  const myFs=await getMyFriends(); const fids=myFs.map(f=>f.friendUid);
+  const r=allUsers.filter(u=>(u.name?.toLowerCase().includes(q)||u.village?.toLowerCase().includes(q))&&u.uid!==me?.uid);
+  if(!r.length){res.innerHTML='<div style="text-align:center;padding:30px;color:var(--muted);font-family:\'Noto Sans Oriya\',serif"><div style="font-size:44px">😔</div>ମିଳିଲା ନାହିଁ</div>';return;}
+  res.innerHTML='';
+  r.forEach(u=>{
+    const d=document.createElement('div'); d.className='ucard'; d.onclick=()=>openUserModal(u);
+    const avC=u.photoUrl?`<img src="${u.photoUrl}" style="width:100%;height:100%;object-fit:cover;"/>`:'😊';
+    const avB=u.photoUrl?'white':'linear-gradient(135deg,var(--or),#F9A825)';
+    d.innerHTML=`<div class="uav" style="background:${avB}">${avC}</div><div style="flex:1"><div style="font-size:14px;font-weight:700">${u.name}</div><div style="font-size:11px;color:var(--muted)">🏡 ${u.village||'ଗ'}</div></div>${fids.includes(u.uid)?'<div class="ftag">✅ Friend</div>':'<div style="color:#ccc">👤</div>'}`;
+    res.appendChild(d);
+  });
+}
+
+// ===== FRIENDS =====
+async function getMyFriends(){if(!me)return[];try{const s=await db.collection('friends').where('userUid','==',me.uid).get();return s.docs.map(d=>d.data());}catch{return[];}}
+async function loadFriendCount(){const fs=await getMyFriends();document.getElementById('myFC').textContent=fs.length;}
+
+function openUserModal(u){
+  selUser=u;
+  document.getElementById('umName').textContent=u.name;
+  document.getElementById('umVil').textContent='🏡 '+(u.village||'ଗ');
+  const av=document.getElementById('umAv');
+  av.innerHTML=u.photoUrl?`<img src="${u.photoUrl}" style="width:100%;height:100%;object-fit:cover;"/>`:'😊';
+  document.getElementById('userMod').classList.add('open');
+  getMyFriends().then(fs=>{
+    const isFr=fs.some(f=>f.friendUid===u.uid);
+    const btn=document.getElementById('addFriendBtn');
+    btn.textContent=isFr?'✅ Friend ଅଛି':'👥 Add Friend';
+    btn.style.background=isFr?'linear-gradient(135deg,var(--gr),var(--gr2))':'linear-gradient(135deg,var(--or),var(--or2))';
+  });
+}
+document.getElementById('userModClose').onclick=()=>{document.getElementById('userMod').classList.remove('open');selUser=null;};
+
+document.getElementById('addFriendBtn').onclick=async function(){
+  if(!selUser||!me)return; this.disabled=true;
+  const fs=await getMyFriends(); const isFr=fs.some(f=>f.friendUid===selUser.uid);
+  try{
+    if(isFr){const s=await db.collection('friends').where('userUid','==',me.uid).where('friendUid','==',selUser.uid).get();for(const d of s.docs)await d.ref.delete();this.textContent='👥 Add';this.style.background='linear-gradient(135deg,var(--or),var(--or2))';toast('Remove ✓');}
+    else{await db.collection('friends').add({userUid:me.uid,userName:myD?.name||'?',userPhoto:myD?.photoUrl||null,friendUid:selUser.uid,friendName:selUser.name,friendVillage:selUser.village||'ଗ',friendPhoto:selUser.photoUrl||null,addedAt:FS.serverTimestamp()});
+      // Add notification for friend
+      await db.collection('notifications').add({toUid:selUser.uid,fromUid:me.uid,fromName:myD?.name||'?',fromPhoto:myD?.photoUrl||null,type:'friend_request',text:`${myD?.name||'?'} ଆପଣଙ୍କୁ Friend Request ପଠାଇଛନ୍ତି`,createdAt:FS.serverTimestamp(),read:false});
+      this.textContent='✅ Friend';this.style.background='linear-gradient(135deg,var(--gr),var(--gr2))';toast('🎉 Friend Add!');loadFriendCount();}
+  }catch(e){toast('Error!');}
+  this.disabled=false;
+};
+
+document.getElementById('chatFromModalBtn').onclick=function(){if(!selUser)return;document.getElementById('userMod').classList.remove('open');openChat(selUser.uid,selUser.name,selUser.photoUrl||null);};
+
+async function goFriends(){
+  goScreen('friends');
+  const wrap=document.getElementById('friendsWrap');
+  wrap.innerHTML='<div style="text-align:center;padding:20px;color:var(--muted)">⏳ Loading...</div>';
+  const fs=await getMyFriends();
+  if(!fs.length){wrap.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted);font-family:\'Noto Sans Oriya\',serif"><div style="font-size:48px">😔</div><div style="font-weight:700;margin-top:8px">ଏଖନ Friend ନାହିଁ</div><div style="margin-top:4px;font-size:13px">Search ରୁ Add କରନ୍ତୁ</div></div>';return;}
+  wrap.innerHTML=''; document.getElementById('myFC').textContent=fs.length;
+  for(const f of fs){
+    let unread=0;
+    try{const cid=getChatId(me.uid,f.friendUid);const ls=(await db.collection('lastSeen').doc(me.uid+'_'+f.friendUid).get()).data()?.time||0;const msgs=await db.collection('chats').doc(cid).collection('messages').where('senderUid','==',f.friendUid).orderBy('createdAt','desc').limit(10).get();msgs.forEach(m=>{if((m.data().createdAt?.toMillis?.())||0>ls)unread++;});}catch{}
+    const d=document.createElement('div'); d.className='ucard'; if(unread>0)d.style.background='#FFF8F0';
+    const avC=f.friendPhoto?`<img src="${f.friendPhoto}" style="width:100%;height:100%;object-fit:cover;"/>`:'😊';
+    const avB=f.friendPhoto?'white':'linear-gradient(135deg,var(--or),#F9A825)';
+    d.innerHTML=`<div class="uav" style="background:${avB}">${avC}</div><div style="flex:1"><div style="font-size:14px;font-weight:${unread>0?'800':'600'}">${f.friendName}</div><div style="font-size:11px;color:var(--muted)">🏡 ${f.friendVillage}</div></div><div style="display:flex;align-items:center;gap:8px">${unread>0?`<div style="background:#e53935;color:white;font-size:10px;min-width:18px;height:18px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-weight:700">${unread}</div>`:''}<button onclick="openChat('${f.friendUid}','${f.friendName}','${f.friendPhoto||''}')" style="background:linear-gradient(135deg,#1a237e,#3949AB);border:none;color:white;padding:8px 14px;border-radius:10px;font-size:13px;cursor:pointer;font-weight:700">💬</button></div>`;
+    wrap.appendChild(d);
+  }
+  document.getElementById('unreadBadge').style.display='none';
+}
+
+// ===== CHAT =====
+function getChatId(a,b){return [a,b].sort().join('_');}
+
+function openChat(uid,name,photo){
+  chatFriend={uid,name,photo};
+  document.getElementById('chatNm').textContent=name;
+  const av=document.getElementById('chatAv');
+  av.innerHTML=photo?`<img src="${photo}" style="width:100%;height:100%;object-fit:cover;"/>`:'😊';
+  document.getElementById('chatMsgs').innerHTML='';
+  document.getElementById('chatScr').classList.add('open');
+  if(me) db.collection('lastSeen').doc(me.uid+'_'+uid).set({time:Date.now()}).catch(()=>{});
+  if(chatUnsub) chatUnsub();
+  const cid=getChatId(me.uid,uid);
+  chatUnsub=db.collection('chats').doc(cid).collection('messages').orderBy('createdAt','asc').limit(50).onSnapshot(snap=>{
+    const msgs=document.getElementById('chatMsgs'); msgs.innerHTML='';
+    snap.forEach(ds=>{
+      const m=ds.data(), mine=m.senderUid===me.uid;
+      const t=m.createdAt?.toDate?m.createdAt.toDate().toLocaleTimeString('or-IN',{hour:'2-digit',minute:'2-digit'}):'';
+      const sPhoto=mine?(myD?.photoUrl||null):photo;
+      const sAvC=sPhoto?`<img src="${sPhoto}" style="width:100%;height:100%;object-fit:cover;"/>`:'😊';
+      let msgTxt=m.text;
+      if(m.isVideoCall&&m.callLink&&!mine) msgTxt=`📹 Video Call<br><a href="${m.callLink}" target="_blank" style="display:inline-block;background:linear-gradient(135deg,var(--gr),var(--gr2));color:white;text-decoration:none;padding:8px 18px;border-radius:20px;font-size:13px;font-weight:700;margin-top:6px">📹 Join Call</a>`;
+      else if(m.isVideoCall&&mine) msgTxt='📹 Video Call ✅';
+      const row=document.createElement('div'); row.className=`cmsg-row ${mine?'mine':''}`;
+      row.innerHTML=`<div class="cmsgav" style="background:${sPhoto?'white':'linear-gradient(135deg,var(--or),#F9A825)'}">${sAvC}</div><div class="cmsg ${mine?'mine':'theirs'}">${msgTxt}<div class="ctime">${t}</div></div>`;
+      msgs.appendChild(row);
+    });
+    msgs.scrollTop=msgs.scrollHeight;
+  });
+}
+
+function closeChat(){document.getElementById('chatScr').classList.remove('open');if(chatUnsub){chatUnsub();chatUnsub=null;}chatFriend=null;}
+document.getElementById('chatSendBtn').onclick=sendMsg;
+document.getElementById('chatInp').onkeydown=e=>{if(e.key==='Enter')sendMsg();};
+async function sendMsg(){
+  const inp=document.getElementById('chatInp'),txt=inp.value.trim();
+  if(!txt||!chatFriend||!me)return; inp.value='';
+  const cid=getChatId(me.uid,chatFriend.uid);
+  try{await db.collection('chats').doc(cid).collection('messages').add({text:txt,senderUid:me.uid,senderName:myD?.name||me.displayName||'ଆପଣ',createdAt:FS.serverTimestamp()});}
+  catch(e){toast('Error!');}
+}
+
+// VIDEO CALL
+async function startVideoCall(){
+  if(!chatFriend||!me)return;
+  const cid=getChatId(me.uid,chatFriend.uid);
+  const meetLink='https://meet.google.com/new';
+  await db.collection('chats').doc(cid).collection('messages').add({text:'📹 Video Call',callLink:meetLink,isVideoCall:true,senderUid:me.uid,senderName:myD?.name||'ଆପଣ',createdAt:FS.serverTimestamp()});
+  window.open(meetLink,'_blank');
+  toast('📹 Google Meet ଖୋଲୁଛି...');
+}
+
+// ===== NOTIFICATIONS =====
+function loadNotifications(){
+  if(!me) return;
+  db.collection('notifications').where('toUid','==',me.uid).orderBy('createdAt','desc').limit(20).onSnapshot(snap=>{
+    const list=document.getElementById('notifList');
+    if(snap.empty){list.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted);font-family:\'Noto Sans Oriya\',serif"><div style="font-size:48px">🔔</div>ଏଖନ notification ନାହିଁ</div>';return;}
+    list.innerHTML=''; let unreadCount=0;
+    snap.forEach(ds=>{
+      const n=ds.data();
+      if(!n.read) unreadCount++;
+      const t=n.createdAt?.toDate?n.createdAt.toDate().toLocaleTimeString('or-IN',{hour:'2-digit',minute:'2-digit'}):'';
+      const avC=n.fromPhoto?`<img src="${n.fromPhoto}" style="width:100%;height:100%;object-fit:cover;"/>`:'😊';
+      const avB=n.fromPhoto?'white':'linear-gradient(135deg,var(--or),#F9A825)';
+      const item=document.createElement('div');
+      item.className=`notif-item ${!n.read?'unread':''}`;
+      item.innerHTML=`<div class="notif-av" style="background:${avB}">${avC}</div><div style="flex:1"><div class="notif-txt">${n.text||''}</div><div class="notif-time">${t}</div></div>${!n.read?'<div class="notif-dot"></div>':''}`;
+      item.onclick=async()=>{await ds.ref.update({read:true});item.classList.remove('unread');item.querySelector('.notif-dot')?.remove();};
+      list.appendChild(item);
+    });
+    const badge=document.getElementById('notifBadge');
+    const nvBadge=document.getElementById('nvNotifBadge');
+    if(unreadCount>0){
+      badge.textContent=unreadCount;badge.style.display='flex';
+      nvBadge.textContent=unreadCount;nvBadge.style.display='flex';
+    } else {badge.style.display='none';nvBadge.style.display='none';}
+  });
+}
+
+// ===== COMMENTS =====
+function openComments(postId){
+  curPostId=postId;
+  document.getElementById('cmtMod').classList.add('open');
+  const list=document.getElementById('cmtList');
+  list.innerHTML='<div style="text-align:center;color:var(--muted);padding:14px">⏳ Loading...</div>';
+  db.collection('posts').doc(postId).collection('comments').orderBy('createdAt','asc').onSnapshot(snap=>{
+    if(snap.empty){list.innerHTML='<div style="text-align:center;color:var(--muted);font-family:\'Noto Sans Oriya\',serif;padding:14px">ଏଖନ comment ନାହିଁ</div>';return;}
+    list.innerHTML='';
+    snap.forEach(d=>{
+      const cm=d.data(),t=cm.createdAt?.toDate?cm.createdAt.toDate().toLocaleTimeString('or-IN',{hour:'2-digit',minute:'2-digit'}):'';
+      list.innerHTML+=`<div class="cmtitem"><div class="cmtname">${cm.authorName||'?'} <span style="color:var(--muted);font-weight:400;font-size:11px">${t}</span></div><div class="cmttxt or">${cm.text}</div></div>`;
+    });
+    list.scrollTop=list.scrollHeight;
+  });
+}
+document.getElementById('cmtClose').onclick=()=>{document.getElementById('cmtMod').classList.remove('open');curPostId=null;};
+document.getElementById('cmtSend').onclick=sendComment;
+document.getElementById('cmtInp').onkeydown=e=>{if(e.key==='Enter')sendComment();};
+async function sendComment(){
+  const inp=document.getElementById('cmtInp'),txt=inp.value.trim();
+  if(!txt||!curPostId||!me)return; inp.value='';
+  try{
+    await db.collection('posts').doc(curPostId).collection('comments').add({text:txt,authorName:myD?.name||me.displayName||'ଆପଣ',authorUid:me.uid,createdAt:FS.serverTimestamp()});
+    await db.collection('posts').doc(curPostId).update({comments:FS.increment(1)});
+  }catch(e){toast('Error!');}
+}
+
+// ===== UNREAD CHECK =====
+async function checkUnread(){
+  if(!me)return;
+  try{
+    const fs=await getMyFriends(); let total=0;
+    for(const f of fs){
+      const cid=getChatId(me.uid,f.friendUid);
+      const ls=(await db.collection('lastSeen').doc(me.uid+'_'+f.friendUid).get()).data()?.time||0;
+      const msgs=await db.collection('chats').doc(cid).collection('messages').where('senderUid','==',f.friendUid).orderBy('createdAt','desc').limit(5).get();
+      msgs.forEach(m=>{if((m.data().createdAt?.toMillis?.())||0>ls)total++;});
+    }
+    const badge=document.getElementById('unreadBadge');
+    if(total>0){badge.textContent=total>9?'9+':total;badge.style.display='flex';}
+    else badge.style.display='none';
+  }catch{}
+}
+
+// ===== NAVIGATION =====
+function goScreen(s){
+  ['home','search','upload','notifications','profile','saved','friends','games'].forEach(x=>{
+    const el=document.getElementById('s'+x.charAt(0).toUpperCase()+x.slice(1));
+    if(el)el.classList.toggle('on',x===s);
+    const nb=document.getElementById('nb-'+x);
+    if(nb)nb.classList.toggle('on',x===s);
+  });
+  document.getElementById('topbar').style.display=(s==='friends'||s==='saved')?'none':'flex';
+  if(s==='games') {}
+  if(s==='search'){loadAllUsers();setTimeout(()=>document.getElementById('srchInp').focus(),300);}
+  if(s==='notifications') loadNotifications();
+  if(s==='saved') loadSavedScreen();
+}
+
+function showProfileTab(tab){
+  document.getElementById('ptabPost').style.opacity=tab==='posts'?'1':'0.4';
+  document.getElementById('ptabTag').style.opacity=tab==='tagged'?'1':'0.4';
+}
+
+// ===== UTILS =====
+function toggleEye(id,btn){const i=document.getElementById(id);i.type=i.type==='password'?'text':'password';btn.textContent=i.type==='password'?'👁️':'🙈';}
+function showMsg(id,msg,type){const el=document.getElementById(id);el.textContent=msg;el.className='amsg '+type;}
+function addTag(t){const el=document.getElementById('capInp');el.value+=(el.value?' ':'')+t;}
+function toast(msg){const t=document.getElementById('toastEl');t.textContent=msg;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500);}
+function vN(){const v=document.getElementById('rN').value.trim(),m=document.getElementById('rNm');m.className='fmsg '+(v.length<2?'err':'ok');m.textContent=v.length<2?'ଅତି କମ ୨':'✓';}
+function vP(){const v=document.getElementById('rP').value,f=document.getElementById('strF'),m=document.getElementById('rPm');let s=0;if(v.length>=6)s++;if(v.length>=10)s++;if(/[A-Z]/.test(v))s++;if(/[0-9]/.test(v))s++;f.style.width=(s*25)+'%';f.style.background=['','#ef5350','#FF6D00','#FFC107','#2E7D32'][s]||'#eee';m.className='fmsg '+(v.length<6?'err':'ok');m.textContent=v.length<6?'ଅତି କମ ୬':['','ଦୁର୍ବଳ','ଠିକ','ଭଲ','ଶ୍ରେଷ୍ଠ'][s]||'';}
+function vC(){const p1=document.getElementById('rP').value,p2=document.getElementById('rP2').value,m=document.getElementById('rCm');m.className='fmsg '+(p1!==p2?'err':'ok');m.textContent=p1!==p2?'ମିଳୁ ନାହିଁ ❌':p2?'✓':'';}
+
+// ===== TIC TAC TOE =====
+let tB=Array(9).fill(''),tT='X',tD=false;
+function openTTT(){document.getElementById('tttMod').classList.add('open');resetTTT();}
+function closeTTT(){document.getElementById('tttMod').classList.remove('open');}
+function resetTTT(){tB=Array(9).fill('');tT='X';tD=false;document.getElementById('tttStat').textContent='Player ❌ ର turn';const b=document.getElementById('tttBoard');b.innerHTML='';for(let i=0;i<9;i++){const c=document.createElement('div');c.className='tttcell';c.onclick=()=>tttM(i,c);b.appendChild(c);}}
+function tttM(i,c){if(tD||tB[i])return;tB[i]=tT;c.textContent=tT==='X'?'❌':'⭕';const w=tttW();if(w){document.getElementById('tttStat').textContent=(w==='X'?'❌':'⭕')+' ଜିତିଲା! 🎉';tD=true;return;}if(!tB.includes('')){document.getElementById('tttStat').textContent='Draw! 🤝';tD=true;return;}tT=tT==='X'?'O':'X';document.getElementById('tttStat').textContent='Player '+(tT==='X'?'❌':'⭕')+' ର turn';}
+function tttW(){for(const[a,b,c]of[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]])if(tB[a]&&tB[a]===tB[b]&&tB[a]===tB[c])return tB[a];return null;}
+
+// ===== STORY UPLOAD =====
+let storyFileType = 'image/*';
+
+function openStoryUploadModal(){
+  document.getElementById('storyUploadMod').classList.add('open');
+}
+
+function openStoryPicker(accept){
+  storyFileType = accept;
+  document.getElementById('storyFileInp').accept = accept;
+  document.getElementById('storyFileInp').click();
+  document.getElementById('storyUploadMod').classList.remove('open');
+}
+
+function openStoryText(){
+  document.getElementById('storyUploadMod').classList.remove('open');
+  document.getElementById('storyTextMod').classList.add('open');
+}
+
+let storyAudioFile = null;
+function onStoryAudio(inp){
+  storyAudioFile = inp.files[0];
+  if(storyAudioFile){
+    const nameEl = document.getElementById('storyAudioName');
+    nameEl.textContent = '🎵 ' + storyAudioFile.name;
+    nameEl.style.display = 'block';
+  }
+}
+
+async function postTextStory(){
+  const txt = document.getElementById('storyTextInp').value.trim();
+  if(!txt && !storyAudioFile){toast('Text ଲେଖନ୍ତୁ!');return;}
+  const btn = document.getElementById('storyTextPostBtn');
+  btn.disabled = true; btn.textContent = '⏳ Posting...';
+  try{
+    let audioUrl = null;
+    if(storyAudioFile){
+      toast('⏳ Audio upload ହେଉଛି...');
+      audioUrl = await uploadCloud(storyAudioFile, 'raw');
+    }
+    const exp = new Date(Date.now() + 24*60*60*1000);
+    await db.collection('stories').add({
+      caption: txt, audioUrl, mediaType: 'text',
+      authorName: myD?.name||me?.displayName||'ଆପଣ',
+      authorEmoji: '😊', authorPhoto: myD?.photoUrl||null,
+      uid: me.uid, expiresAt: exp,
+      createdAt: FS.serverTimestamp()
+    });
+    document.getElementById('storyTextInp').value = '';
+    storyAudioFile = null;
+    document.getElementById('storyAudioName').style.display = 'none';
+    document.getElementById('storyTextMod').classList.remove('open');
+    toast('✨ Story posted for 24hrs!');
+    updateMyStoryCicle();
+  }catch(e){toast('Error: '+e.message);}
+  btn.disabled = false; btn.textContent = '✅ Story Post';
+}
+
+async function onStoryFile(inp){
+  const f = inp.files[0]; if(!f) return;
+  const isVideo = f.type.startsWith('video/');
+  if(f.size > (isVideo?50:10)*1024*1024){toast('ଫାଇଲ ବଡ଼!');return;}
+  toast('⏳ Story upload ହେଉଛି...');
+  try{
+    const mediaUrl = await uploadCloud(f, isVideo?'video':'photo');
+    const exp = new Date(Date.now() + 24*60*60*1000);
+    await db.collection('stories').add({
+      mediaUrl, mediaType: isVideo?'video':'photo', caption:'',
+      authorName: myD?.name||me?.displayName||'ଆପଣ',
+      authorEmoji: '😊', authorPhoto: myD?.photoUrl||null,
+      uid: me.uid, expiresAt: exp,
+      createdAt: FS.serverTimestamp()
+    });
+    inp.value = '';
+    toast('✨ Story posted for 24hrs!');
+    updateMyStoryCicle();
+  }catch(e){toast('Error: '+e.message);}
+}
+
+function updateMyStoryCicle(){
+  // Update my story circle to show uploaded ring + small + button
+  const storyAv = document.getElementById('myStoryAv');
+  if(myD?.photoUrl){
+    storyAv.innerHTML = `<img src="${myD.photoUrl}" style="width:100%;height:100%;object-fit:cover;"/>`;
+  }
+  // Add small + button below
+  const myStoryItem = storyAv.closest('.story-item');
+  if(myStoryItem && !myStoryItem.querySelector('.story-add-btn')){
+    const addBtn = document.createElement('div');
+    addBtn.className = 'story-add-btn';
+    addBtn.innerHTML = '➕';
+    addBtn.style.cssText = 'width:20px;height:20px;background:var(--or);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;color:white;cursor:pointer;position:absolute;bottom:-2px;right:-2px;border:2px solid white;z-index:2;';
+    addBtn.onclick = (e)=>{e.stopPropagation();openStoryUploadModal();};
+    storyAv.closest('.story-ring').style.position = 'relative';
+    storyAv.closest('.story-ring').appendChild(addBtn);
+  }
+}
+
+if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+</script>
+</body>
+</html>
